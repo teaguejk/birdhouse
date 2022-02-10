@@ -28,6 +28,7 @@ def send_email():
 	"""
 	Function to send an email if given conditions are met
 	Sends to a list of users
+	
 	"""
 
 # Main section
