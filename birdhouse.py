@@ -11,7 +11,11 @@ import RPi.GPIO as GPIO
 from picamera import PiCamera
 import time
 import datetime
-import smtplib
+import smtplib, email, ssl
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 #Function defs
 
@@ -26,10 +30,51 @@ def start_video():
 
 def send_email():
 	"""
-	Function to send an email if given conditions are met
+	Function to send an email if given conditions are met,
+	this email will contain an image attachment
 	Sends to a list of users
 	
 	"""
+
+	# set up the message
+	sender_email = ''
+	recepient_emails = [
+		'teaguejk@appstate.edu',
+	]
+	time = strftime("%m-%d-%y %H:%M:%S")
+	subject = "Motion Detected in Birdhouse " + time
+
+	message = MIMEMultipart()
+	message["From"] = sender_email
+	message["To"] = recepient_emails[0]
+	message["Subject"] = subject
+
+	message.attach(body, 'plain')
+	
+	"""
+	# add the attachment (image) to the message
+	# filename = ''
+	with open(filename, "rb") as attachment:
+    	part = MIMEBase("application", "octet-stream")
+    	part.set_payload(attachment.read())
+
+    # encoding
+	encoders.encode_base64()
+
+	part.add_header(
+    "Content-Disposition",
+    f"attachment; filename= {filename}",
+    )
+
+	message.attach(part)
+    """
+	
+   # sending the message
+	text = message.as_string()
+	ontext = ssl.create_default_context()
+	with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+    	server.login(sender_email, password)
+    	server.sendmail(sender_email, receiver_email, text)
 
 # Main section
 
