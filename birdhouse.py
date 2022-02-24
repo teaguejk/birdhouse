@@ -7,8 +7,8 @@
 #
 """
 
-import RPi.GPIO as GPIO
-from picamera import PiCamera
+# import RPi.GPIO as GPIO
+# from picamera import PiCamera
 import time
 import datetime
 import smtplib, email, ssl
@@ -24,8 +24,8 @@ def start_video():
 	Function to start capturing video if motion is detected at the camera
 
 	"""
-	print ("Motion has been detected at camera\n")
-	timestamp = time.strftime("%m-%d-%y-%H-%M-%S")  
+	print ('Motion has been detected at camera\n')
+	timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
 
 
 def send_email():
@@ -37,29 +37,30 @@ def send_email():
 	"""
 
 	# set up the message
-	sender_email = ''
+	sender_email = 'zeroDoNotReply@gmail.com'
+	password = 'birdhouse1!'
 	recepient_emails = [
 		'teaguejk@appstate.edu',
+		'erinbrzezin@gmail.com'
 	]
-	time = strftime("%m-%d-%y %H:%M:%S")
-	subject = "Motion Detected in Birdhouse " + time
-
+	timestamp = time.strftime('%m-%d-%y %H:%M:%S')
+	subject = 'Automated Email: Motion Detected in Birdhouse ' + timestamp
+	body = 'Motion Detected in Birdhouse'
 	message = MIMEMultipart()
 	message["From"] = sender_email
-	message["To"] = recepient_emails[0]
+	message["To"] = recepient_emails[1]
 	message["Subject"] = subject
 
-	message.attach(body, 'plain')
+	message.attach(MIMEText(body, "plain"))
 	
-	"""
 	# add the attachment (image) to the message
-	# filename = ''
+	filename = 'IMG.jpg'
 	with open(filename, "rb") as attachment:
 		part = MIMEBase("application", "octet-stream")
 		part.set_payload(attachment.read())
 
 	# encoding
-	encoders.encode_base64()
+	encoders.encode_base64(part)
 
 	part.add_header(
 	"Content-Disposition",
@@ -67,18 +68,26 @@ def send_email():
 	)
 
 	message.attach(part)
-	"""
 	
 	# sending the message
 	text = message.as_string()
-	ontext = ssl.create_default_context()
+	context = ssl.create_default_context()
 	with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
 		server.login(sender_email, password)
-		server.sendmail(sender_email, receiver_email, text)
+		server.sendmail(sender_email, recepient_emails[1], text)
 
 # Main section
+def main():
+	# create the camera object
+	# camera = PiCamera()
 
-# create the camera object
-camera = PiCamera()
+	# while loop
 
-# while loop
+	# send email
+	send_email()
+
+
+if __name__ == "__main__":
+	main()
+
+
