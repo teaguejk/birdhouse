@@ -8,7 +8,7 @@
 """
 
 # import RPi.GPIO as GPIO
-# from picamera import PiCamera
+from picamera import PiCamera
 import time
 import datetime
 import smtplib, email, ssl
@@ -48,7 +48,7 @@ def send_email():
 	body = 'Motion Detected in Birdhouse'
 	message = MIMEMultipart()
 	message["From"] = sender_email
-	message["To"] = recepient_emails[1]
+	message["To"] = recepient_emails[0]
 	message["Subject"] = subject
 
 	message.attach(MIMEText(body, "plain"))
@@ -74,17 +74,21 @@ def send_email():
 	context = ssl.create_default_context()
 	with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
 		server.login(sender_email, password)
-		server.sendmail(sender_email, recepient_emails[1], text)
+		server.sendmail(sender_email, recepient_emails[0], text)
 
 # Main section
 def main():
 	# create the camera object
-	# camera = PiCamera()
+    camera = PiCamera()
+    camera.start_preview()
+    camera.capture('./img.jpg')
+    time.sleep(2)
+    camera.stop_preview()
 
 	# while loop
 
 	# send email
-	send_email()
+	# send_email()
 
 
 if __name__ == "__main__":
