@@ -8,7 +8,7 @@
 """
 
 # import RPi.GPIO as GPIO
-from picamera import PiCamera
+# from picamera import PiCamera
 import time
 import datetime
 import smtplib, email, ssl
@@ -17,6 +17,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+#------------------------------------------------------------------------------------------
 #Function defs
 
 def start_video():
@@ -28,7 +29,7 @@ def start_video():
 	timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
 
 
-def send_email():
+def send_email(password):
 	"""
 	Function to send an email if given conditions are met,
 	this email will contain an image attachment
@@ -37,19 +38,21 @@ def send_email():
 	"""
 
 	# set up the message
-	sender_email = 'zeroDoNotReply@gmail.com'
-	password = 'birdhouse1!'
+	sender_email	= 'zeroDoNotReply@gmail.com'
+	password		= password
+
 	recepient_emails = [
 		'teaguejk@appstate.edu',
 		'erinbrzezin@gmail.com'
 	]
-	timestamp = time.strftime('%m-%d-%y %H:%M:%S')
-	subject = 'Automated Email: Motion Detected in Birdhouse ' + timestamp
-	body = 'Motion Detected in Birdhouse'
-	message = MIMEMultipart()
-	message["From"] = sender_email
-	message["To"] = recepient_emails[0]
-	message["Subject"] = subject
+	timestamp 	= time.strftime('%m-%d-%y %H:%M:%S')
+	subject 	= 'Automated Email: Motion Detected in Birdhouse ' + timestamp
+	body 		= 'Motion Detected in Birdhouse'
+	message 	= MIMEMultipart()
+
+	message["From"] 	= sender_email
+	message["To"] 		= recepient_emails[0]
+	message["Subject"] 	= subject
 
 	message.attach(MIMEText(body, "plain"))
 	
@@ -76,19 +79,21 @@ def send_email():
 		server.login(sender_email, password)
 		server.sendmail(sender_email, recepient_emails[0], text)
 
+
+#------------------------------------------------------------------------------------------
 # Main section
 def main():
 	# create the camera object
-    camera = PiCamera()
-    camera.start_preview()
-    camera.capture('./img.jpg')
-    time.sleep(2)
-    camera.stop_preview()
+    # camera = PiCamera()
+    # camera.start_preview()
+    # camera.capture('./img.jpg')
+    # time.sleep(2)
+    # camera.stop_preview()
 
 	# while loop
-
 	# send email
-	# send_email()
+	password = input("Please Enter Password\n")
+	# send_email(password)
 
 
 if __name__ == "__main__":
