@@ -45,6 +45,7 @@ def send_email(password):
 		'teaguejk@appstate.edu',
 		'erinbrzezin@gmail.com'
 	]
+	
 	timestamp 	= time.strftime('%m-%d-%y %H:%M:%S')
 	subject 	= 'Automated Email: Motion Detected in Birdhouse ' + timestamp
 	body 		= 'Motion Detected in Birdhouse'
