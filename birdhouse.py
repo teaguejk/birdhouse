@@ -12,11 +12,17 @@
 import time
 import datetime
 import smtplib, email, ssl
+import cv2 as cv
+import imutils
+import argparse
+from imutils.video import VideoStream
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+# ssl._create_default_https_context = ssl._create_unverified_context
+ 
 #------------------------------------------------------------------------------------------
 #Function defs
 
@@ -94,7 +100,7 @@ def main():
 	# while loop
 	# send email
 	password = input("Please Enter Password\n")
-	# send_email(password)
+	send_email(password)
 
 
 if __name__ == "__main__":
