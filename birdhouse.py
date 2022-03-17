@@ -13,9 +13,7 @@ import time
 import datetime
 import smtplib, email, ssl
 import cv2 as cv
-import imutils
 import argparse
-from imutils.video import VideoStream
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
