@@ -6,9 +6,9 @@
 # Appalachian State University
 #
 """
+# img/video files stored in ./assets
 
-# import RPi.GPIO as GPIO
-# from picamera import PiCamera
+# py
 import time
 import datetime
 import smtplib, email, ssl
@@ -19,18 +19,48 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+# pi
+# import RPi.GPIO as GPIO
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+
+
+# misc
 # ssl._create_default_https_context = ssl._create_unverified_context
- 
+
+# Settings
+camera_delay = 2.5
+resolution = [640, 480]
+fps = 16
+min_area = 5000
+
 #------------------------------------------------------------------------------------------
-#Function defs
+# Function defs
 
 def start_video():
 	"""
-	Function to start capturing video if motion is detected at the camera
+	Function to start capturing video 
 
 	"""
-	print ('Motion has been detected at camera\n')
+	# print ('Motion has been detected at camera\n')
 	timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
+
+	# camera setup
+	camera = PiCamera()
+	camera.resolution = tuple(resolution)
+	camera.framerate = fps
+	raw_capture = PiRGBArray(camera, size=tuple(resolution))
+
+	print("[MSG] starting camera...")
+	time.sleep(camera_delay)
+	lastUploaded = datetime.datetime.now()
+	motionCount = 0
+
+	for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True ):
+		# get the numpy array that represents the image
+		frame = f.array
+		timestamp = datetime.datetime.now()
+		state = 'Unoccupied'
 
 
 def send_email(password):
@@ -84,7 +114,6 @@ def send_email(password):
 		server.login(sender_email, password)
 		server.sendmail(sender_email, recepient_emails[0], text)
 
-
 #------------------------------------------------------------------------------------------
 # Main section
 def main():
@@ -97,8 +126,8 @@ def main():
 
 	# while loop
 	# send email
-	password = input("Please Enter Password\n")
-	send_email(password)
+	# password = input("Please Enter Password\n")
+	# send_email(password)
 
 
 if __name__ == "__main__":
