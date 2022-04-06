@@ -6,9 +6,13 @@
 # Appalachian State University
 #
 """
-# img/video files stored in ./assets
 
-# py
+# img/video files stored in ./assets
+# pi camera related things may be temporarily commented out 
+
+# py imports
+# import pandas as pd
+# import numpy as np
 import time
 import datetime
 import smtplib, email, ssl
@@ -20,20 +24,40 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-# pi
+# pi imports 
 # import RPi.GPIO as GPIO
-from picamera import PiCamera
-from picamera.array import PiRGBArray
-
-
-# misc
-# ssl._create_default_https_context = ssl._create_unverified_context
+# from picamera import PiCamera
+# from picamera.array import PiRGBArray
 
 # Settings
 camera_delay = 2.5
 resolution = [640, 480]
 fps = 16
 min_area = 5000
+
+#------------------------------------------------------------------------------------------
+# Notes
+"""
+# ssl._create_default_https_context = ssl._create_unverified_context
+
+# save image as an array 
+raw_capture = PiRGBArray(camera, size=tuple(resolution))
+
+# open cv loop
+for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True ):
+    # get the numpy array that represents the image
+    frame = f.array
+    timestamp = datetime.datetime.now()
+    state = 'Unoccupied'
+
+# create the camera object and capture
+    # camera = PiCamera()
+    # camera.start_preview()
+    # camera.capture('./img.jpg')
+    # time.sleep(2)
+    # camera.stop_preview()
+
+"""
 
 #------------------------------------------------------------------------------------------
 # Function defs
@@ -43,70 +67,49 @@ def start_video():
     Function to start capturing video 
 
     """
-    # print ('Motion has been detected at camera\n')
-    timestamp = time.strftime('%m-%d-%y-%H-%M-%S')
+    # save a timestamp
+    # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
+    timestamp = datetime.datetime.now()
 
     # camera setup
-    camera = PiCamera()
-    camera.resolution = tuple(resolution)
-    camera.framerate = fps
+    # camera = PiCamera()
+    # camera.resolution = tuple(resolution)
+    # camera.framerate = fps
 
+    # print message
     print("[MSG] starting camera...")
+
+    # delay start
     time.sleep(camera_delay)
 
-    rawCapture = PiRGBArray(camera, size=tuple(resolution))
+    # start video that will stop on pressing q or a time limit passes
 
-    firstFrame = None
+    
 
-    for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-        timestamp = datetime.datetime.now()
-        rawCapture.truncate(0)
-        rawCapture.seek(0)
+def capture_image():
+    """
+    Function that captures a single image when called using pi camera
 
-        # put frame into array and resize
-        frame = f.array
-        frame = imutils.resize(frame, width=500)
+    """
 
-        # convert to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (21, 21), 0)        
-        
-        if firstFrame is None:
-            firstFrame = gray
-            continue
+    # save a timestamp
+    # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
+    timestamp = datetime.datetime.now()
+    filename = f'./assets/{timestamp}_bird.jpg'
 
-        # frameDelta - background_model - currentFrame
-	    frameDelta = cv2.absdiff(firstFrame, gray)
+    # create camera object
+    # camera = PiCamera()
 
-        # find and draw contours
-
-        # display any text on the frame
-        ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-        cv2.putText(frame, ts, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-            0.35, (0, 0, 255), 1)
-
-        
-
-    # for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    #     image = frame.array
-    #     result = predictor.detect(image)
-    #     for obj in result:
-    #         logger.info('coordinates: {} {}. class: "{}". confidence: {:.2f}'.format(obj[0], obj[1], obj[3], obj[2]))
-    #         cv2.rectangle(image, obj[0], obj[1], (0, 255, 0), 2)
-    #         cv2.putText(image, '{}: {:.2f}'.format(obj[3], obj[2]), (obj[0][0], obj[0][1] - 5), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
-
-    #     # show the frame
-    #     cv2.imshow("Stream", image)
-    #     key = cv2.waitKey(1) & 0xFF
-
-
+    # # start camera, capture, delay, close
     # camera.start_preview()
-    # camera.capture('./assets/img.jpg')
+    # camera.capture(filename)
     # time.sleep(2)
     # camera.stop_preview()
+    
+    return filename
 
 
-def send_email(password):
+def send_email(password, filename):
     """
     Function to send an email if given conditions are met,
     this email will contain an image attachment
@@ -118,6 +121,9 @@ def send_email(password):
     sender_email    = 'zeroDoNotReply@gmail.com'
     password        = password
 
+    # recipient email list
+    # will eventually be retrieved from website
+    # by reading a csv file into a pandas dataframe
     recepient_emails = [
         'teaguejk@appstate.edu',
         'erinbrzezin@gmail.com'
@@ -135,7 +141,7 @@ def send_email(password):
     message.attach(MIMEText(body, "plain"))
     
     # add the attachment (image) to the message
-    filename = 'IMG.jpg'
+    # filename = 'IMG.jpg'
     with open(filename, "rb") as attachment:
         part = MIMEBase("application", "octet-stream")
         part.set_payload(attachment.read())
@@ -158,22 +164,25 @@ def send_email(password):
         server.sendmail(sender_email, recepient_emails[0], text)
 
 #------------------------------------------------------------------------------------------
-# Main section
+# Main routine
 def main():
-    # create the camera object
-    # camera = PiCamera()
-    # camera.start_preview()
-    # camera.capture('./assets/img.jpg')
-    # time.sleep(2)
-    # camera.stop_preview()
-    
-    # while loop
-    # send email
-    # password = input("Please Enter Password\n")
-    # send_email(password)
-    
-    start_video()
+    # get password on start
+    password = input("Please Enter Password\n")
 
+    # variables needed for the main loop
+    exit = False
+    motion_detected = False
+
+    # while not exit:
+        # constantly check for motion to be detected until an exit command is entered or ctrl-c
+
+        # if motion_detected:
+            # if motion detected, capture image and pass the filename to send_email
+            # filename = capture_image()
+            # send_email(password, filename
+
+    pass
+    
 if __name__ == "__main__":
     main()
 
