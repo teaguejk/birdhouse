@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 ip = socket.gethostname()
 recipient = 'teaguejk@appstate.edu'
 sender    = 'zerodonotreply@gmail.com'
-password  = 'birdhouse1!'
+password  = ''
 
 subject = 'IP FROM PI ZERO'
 body    = str(ip) + ' at ' + str(datetime.datetime.now())
