@@ -11,8 +11,8 @@
 # pi camera related things may be temporarily commented out 
 
 # py imports
-# import pandas as pd
-# import numpy as np
+import pandas as pd
+import numpy as np
 
 import time
 import datetime
@@ -47,6 +47,7 @@ min_area = 5000
 user = 'teaguejk'
 host = 'student2.cs.appstate.edu'
 path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse'
+spass= '900728429'
 
 
 #------------------------------------------------------------------------------------------
@@ -70,11 +71,6 @@ for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=Tru
     # camera.capture('./img.jpg')
     # time.sleep(2)
     # camera.stop_preview()
-
-from fabric.connection import Connection
-with Connection(host, user) as c, c.sftp() as sftp,   \
-         sftp.open(path + '/mailing_list.csv) as file:
-            mailing_list = pd.read_csv(file)
 
 """
 
@@ -142,19 +138,26 @@ def send_email(password, filename):
     Sends to a list of users
     
     """
-
-    # set up the message
-    sender_email    = 'zeroDoNotReply@gmail.com'
-    password        = password
-
     # recipient email list
     # will eventually be retrieved from website
     # by reading a csv file into a pandas dataframe
+    from fabric.connection import Connection
+    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c, c.sftp() as sftp,   \
+         sftp.open(path + '/mailing_list.csv') as file:
+            # mailing_list = np.genfromtxt(file, delimiter=',', header=None)
+            mailing_list = pd.read_csv(file, skip_blank_lines=True, header=None).T
+
+    # print(mailing_list[:])
+
     recepient_emails = [
         'teaguejk@appstate.edu',
         'erinbrzezin@gmail.com'
     ]
     
+    # message setup
+    sender_email    = 'zeroDoNotReply@gmail.com'
+    password        = password
+
     timestamp   = time.strftime('%m-%d-%y %H:%M:%S')
     subject     = 'Automated Email: Motion Detected in Birdhouse ' + timestamp
     body        = 'Motion Detected in Birdhouse'
@@ -184,10 +187,15 @@ def send_email(password, filename):
     
     # sending the message
     text = message.as_string()
+    # if certificates cannot be verified, use this context instead of the default
+    # ssl.SSLContext.verify_mode = ssl.VerifyMode.CERT_NONE
+    # context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, recepient_emails[0], text)
+        # for row in mailing_list:
+        #     server.sendmail(sender_email, row[:0], text)
 
 #------------------------------------------------------------------------------------------
 # Main routine
@@ -198,6 +206,8 @@ def main():
     # variables needed for the main loop
     exit = False
     motion_detected = False
+
+    send_email(password, './assets/IMG.jpg')
 
     # while not exit:
         # constantly check for motion to be detected until an exit command is entered or ctrl-c
