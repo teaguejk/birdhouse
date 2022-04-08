@@ -47,7 +47,7 @@ min_area = 5000
 user = 'teaguejk'
 host = 'student2.cs.appstate.edu'
 path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse'
-spass= '900728429'
+spass= ''
 
 
 #------------------------------------------------------------------------------------------
@@ -194,8 +194,8 @@ def send_email(password, filename):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, recepient_emails[0], text)
-        # for row in mailing_list:
-        #     server.sendmail(sender_email, row[:0], text)
+        # for row in mailing_list.iterrows():
+        #     server.sendmail(sender_email, row[0], text)
 
 #------------------------------------------------------------------------------------------
 # Main routine
