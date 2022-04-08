@@ -47,7 +47,9 @@ min_area = 5000
 user = 'teaguejk'
 host = 'student2.cs.appstate.edu'
 path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse'
-spass= ''
+
+# Email
+sender_email = 'zeroDoNotReply@gmail.com'
 
 
 #------------------------------------------------------------------------------------------
@@ -131,7 +133,7 @@ def capture_image():
 
 
 
-def send_email(password, filename):
+def send_email(epass, spass, filename):
     """
     Function to send an email if given conditions are met,
     this email will contain an image attachment
@@ -155,8 +157,6 @@ def send_email(password, filename):
     ]
     
     # message setup
-    sender_email    = 'zeroDoNotReply@gmail.com'
-    password        = password
 
     timestamp   = time.strftime('%m-%d-%y %H:%M:%S')
     subject     = 'Automated Email: Motion Detected in Birdhouse ' + timestamp
@@ -192,7 +192,7 @@ def send_email(password, filename):
     # context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-        server.login(sender_email, password)
+        server.login(sender_email, epass)
         server.sendmail(sender_email, recepient_emails[0], text)
         # for row in mailing_list.iterrows():
         #     server.sendmail(sender_email, row[0], text)
@@ -200,14 +200,17 @@ def send_email(password, filename):
 #------------------------------------------------------------------------------------------
 # Main routine
 def main():
-    # get password on start
-    password = input("Please Enter Password\n")
+    # get passwords on start
+    print("For Email: "  + sender_email)
+    epass = input("Email Password:\n")
+    print("For server: " + user + "@" + host)
+    spass = input("Server Password:\n")
 
     # variables needed for the main loop
     exit = False
     motion_detected = False
 
-    send_email(password, './assets/IMG.jpg')
+    send_email(epass, spass, './assets/IMG.jpg')
 
     # while not exit:
         # constantly check for motion to be detected until an exit command is entered or ctrl-c
