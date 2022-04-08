@@ -13,18 +13,25 @@
 # py imports
 # import pandas as pd
 # import numpy as np
+
 import time
 import datetime
-import smtplib, email, ssl
-import cv2
 import argparse
+
+import cv2
 import imutils
+
+import smtplib, email, ssl
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from fabric.connection import Connection
+
+
 # pi imports 
+# Comment out when not on PI
 # import RPi.GPIO as GPIO
 # from picamera import PiCamera
 # from picamera.array import PiRGBArray
@@ -34,6 +41,13 @@ camera_delay = 2.5
 resolution = [640, 480]
 fps = 16
 min_area = 5000
+
+# Web Server Setup
+# Mailing list stored in ./mailing_list.csv
+user = 'teaguejk'
+host = 'student2.cs.appstate.edu'
+path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse'
+
 
 #------------------------------------------------------------------------------------------
 # Notes
@@ -57,47 +71,56 @@ for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=Tru
     # time.sleep(2)
     # camera.stop_preview()
 
+from fabric.connection import Connection
+with Connection(host, user) as c, c.sftp() as sftp,   \
+         sftp.open(path + '/mailing_list.csv) as file:
+            mailing_list = pd.read_csv(file)
+
 """
 
 #------------------------------------------------------------------------------------------
 # Function defs
 
-def start_video():
+def capture_video():
     """
-    Function to start capturing video 
+    Function to capture a 60 second video 
+    Comment out when not on PI
+
 
     """
     # save a timestamp
-    # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
-    timestamp = datetime.datetime.now()
+    # # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
+    # timestamp = datetime.datetime.now()
 
-    # camera setup
+    # # camera setup
     # camera = PiCamera()
     # camera.resolution = tuple(resolution)
     # camera.framerate = fps
 
-    # print message
-    print("[MSG] starting camera...")
-
-    # delay start
-    time.sleep(camera_delay)
-
-    # start video that will stop on pressing q or a time limit passes
-
+    # # print message
+    # print("[MSG] starting camera...")
+    # # delay start
+    # time.sleep(camera_delay)
     
+    # # record
+    # camera.start_recording(f'./assets/{timestamp}_bird.h264')
+    # camera.wait_recording(60)
+    # camera.stop_recording()
+    pass
 
 def capture_image():
     """
     Function that captures a single image when called using pi camera
+    Comment out when not on PI
 
     """
 
-    # save a timestamp
-    # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
-    timestamp = datetime.datetime.now()
-    filename = f'./assets/{timestamp}_bird.jpg'
+    # # save a timestamp
+    # # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
+    # timestamp = datetime.datetime.now()
+    # filename = f'./assets/{timestamp}_bird.jpg'
 
-    # create camera object
+    # # create camera object
     # camera = PiCamera()
 
     # # start camera, capture, delay, close
@@ -105,8 +128,11 @@ def capture_image():
     # camera.capture(filename)
     # time.sleep(2)
     # camera.stop_preview()
-    
-    return filename
+
+    # return filename
+
+    pass
+
 
 
 def send_email(password, filename):
