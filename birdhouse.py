@@ -69,6 +69,8 @@ sender_email = 'zeroDoNotReply@gmail.com'
 # Notes
 
 """
+
+
 # ssl._create_default_https_context = ssl._create_unverified_context
 
 # save image as an array 
@@ -89,6 +91,7 @@ for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=Tru
     # camera.stop_preview()
 
 # server.sendmail(sender_email, recepient_emails[0], text) # send an email
+
 
 
 """
@@ -182,7 +185,7 @@ def capture_video():
     # camera.start_recording(f'./assets/{timestamp}_bird.h264')
     # camera.wait_recording(60)
     # camera.stop_recording()
-    
+
     pass
 
 def capture_image():
