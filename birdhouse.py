@@ -49,7 +49,7 @@ from fabric.connection import Connection
 #------------------------------------------------------------------------------------------
 # Settings
 
-#Camera Settings
+# Camera Settings
 camera_delay = 2.5
 resolution = [640, 480]
 fps = 16
