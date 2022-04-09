@@ -11,7 +11,7 @@
 # 
 # pi camera related things may be temporarily commented out 
 #
-# emails are sent from zeroDoNotReply@gmail.com' but can be changed
+# emails are sent from 'zeroDoNotReply@gmail.com' but can be changed
 #
 # passwords are entered on runtime for security
 #
