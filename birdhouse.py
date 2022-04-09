@@ -182,6 +182,7 @@ def capture_video():
     # camera.start_recording(f'./assets/{timestamp}_bird.h264')
     # camera.wait_recording(60)
     # camera.stop_recording()
+    
     pass
 
 def capture_image():
