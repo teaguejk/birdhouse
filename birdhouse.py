@@ -7,7 +7,7 @@
 #
 # img/video files stored in ./assets
 # assumes that the student2.cs.appstate.edu server is hosting the site 
-# located at usr/local/apache2/htdocs/u/teaguejk/birdhouse
+# located at usr/local/apache2/htdocs/u/teaguejk/birdhouse.site
 # 
 # pi camera related things may be temporarily commented out 
 #
@@ -57,8 +57,8 @@ min_area = 5000
 # Web Server Setup
 user = 'teaguejk'
 host = 'student2.cs.appstate.edu'
-path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse'
-# Mailing list is stored in a csv file at /usr/local/apache2/htdocs/u/teaguejk/birdhouse/mailing_list.csv
+path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse.site'
+# Mailing list is stored in a csv file at /usr/local/apache2/htdocs/u/teaguejk/birdhouse.site/mailing_list.csv
 
 # Sender Email
 sender_email = 'zeroDoNotReply@gmail.com'
