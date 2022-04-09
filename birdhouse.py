@@ -109,7 +109,6 @@ def send_email(epass, spass, filename):
     # recipient email list
     # will eventually be retrieved from website
     # by reading a csv file into a pandas dataframe
-    from fabric.connection import Connection
     with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c, c.sftp() as sftp,   \
          sftp.open(path + '/mailing_list.csv') as file:
             mailing_list = pd.read_csv(file, skip_blank_lines=True, header=None).T
@@ -208,6 +207,10 @@ def capture_image():
     # camera.capture(filename)
     # time.sleep(2)
     # camera.stop_preview()
+
+    # upload the new image into the directory
+    # with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c, c.sftp() as sftp,   \
+    #      c.put(filename, path + "/IMG.jpg")
 
     # return filename
 
