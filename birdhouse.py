@@ -87,7 +87,6 @@ for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=Tru
     # get the numpy array that represents the image
     frame = f.array
     timestamp = datetime.datetime.now()
-    state = 'Unoccupied'
 
 # create the camera object and capture
     # camera = PiCamera()
