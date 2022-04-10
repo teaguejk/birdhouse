@@ -42,9 +42,9 @@ from fabric.connection import Connection
 
 # pi imports 
 # Comment out when not on PI
-# import RPi.GPIO as GPIO
-# from picamera import PiCamera
-# from picamera.array import PiRGBArray
+import RPi.GPIO as GPIO
+from picamera import PiCamera
+from picamera.array import PiRGBArray
 
 #------------------------------------------------------------------------------------------
 # Settings
@@ -194,27 +194,28 @@ def capture_image():
 
     """
 
-    # # save a timestamp
-    # # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
-    # timestamp = datetime.datetime.now()
-    # filename = f'./assets/{timestamp}_bird.jpg'
+    # save a timestamp
+    # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
+    timestamp = datetime.datetime.now()
+    filename = f'./assets/{timestamp}_bird.jpg'
+    filename = f'./assets/IMG.jpg'
 
-    # # create camera object
-    # camera = PiCamera()
+    # create camera object
+    camera = PiCamera()
 
-    # # start camera, capture, delay, close
-    # camera.start_preview()
-    # camera.capture(filename)
-    # time.sleep(2)
-    # camera.stop_preview()
+    # start camera, capture, delay, close
+    camera.start_preview()
+    camera.capture(filename)
+    time.sleep(2)
+    camera.stop_preview()
 
     # upload the new image into the directory
-    # with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c, c.sftp() as sftp,   \
-    #      c.put(filename, path + "/IMG.jpg")
+    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c:  
+         c.put(filename, path + "/IMG.jpg")
 
-    # return filename
+    return filename
 
-    pass
+    # pass
 
 #------------------------------------------------------------------------------------------
 
@@ -231,8 +232,9 @@ def main():
     # variables needed for the main loop
     exit = False
     motion_detected = False
-
-    send_email(epass, spass, './assets/IMG.jpg')
+    # filename = './assets/IMG.jpg'
+    filename = capture_image()
+    send_email(epass, spass, filename)
 
     # while not exit:
         # constantly check for motion to be detected until an exit command is entered or ctrl-c
