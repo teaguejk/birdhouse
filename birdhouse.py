@@ -49,6 +49,9 @@ from picamera.array import PiRGBArray
 #------------------------------------------------------------------------------------------
 # Settings
 
+# GPIO Settings
+MOTION_PIN = 4
+
 # Camera Settings
 camera_delay = 2.5
 resolution = [640, 480]
@@ -213,6 +216,8 @@ def capture_image():
     with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c:  
          c.put(filename, path + "/IMG.jpg")
 
+    # send_email(epass, spass, filename)
+
     return filename
 
     # pass
@@ -232,6 +237,17 @@ def main():
     # variables needed for the main loop
     exit = False
     motion_detected = False
+
+    # motion detection from GPIO pin (MOTION_PIN)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(MOTION_PIN, GPIO.IN)
+    GPIO.add_event_detect(MOTION_PIN, GPIO.RISING, callback=capture_image, bouncetime=1000)  
+    # when motion is detected, capture_image (upload new IMG to server) -> send_email
+    # 2 options:
+    #   1. have capture_image call send email 
+    #   2. have it return the filename and call send_email from main
+
+
     # filename = './assets/IMG.jpg'
     filename = capture_image()
     send_email(epass, spass, filename)
