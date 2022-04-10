@@ -5,7 +5,8 @@
 # Capstone Project
 # Appalachian State University
 #
-# img/video files stored in ./assets
+# img/video files stored in ./assets and named in this format: {timestamp}_bird.jpg/mov
+# 
 # assumes that the student2.cs.appstate.edu server is hosting the site 
 # located at usr/local/apache2/htdocs/u/teaguejk/birdhouse.site
 # 
@@ -53,7 +54,7 @@ from picamera.array import PiRGBArray
 MOTION_PIN = 4
 
 # Camera Settings
-camera_delay = 2.5
+camera_delay = 1
 resolution = [640, 480]
 fps = 16
 min_area = 5000
@@ -171,9 +172,12 @@ def capture_video():
 
 
     """
-    # save a timestamp
+    # timestamp
     # # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
     # timestamp = datetime.datetime.now()
+
+    # filename
+    # filename = f'./assets/{timestamp}_bird.mov'
 
     # # camera setup
     # camera = PiCamera()
@@ -181,14 +185,16 @@ def capture_video():
     # camera.framerate = fps
 
     # # print message
-    # print("[MSG] starting camera...")
+    # print("[MSG] Starting Camera...\n")
     # # delay start
     # time.sleep(camera_delay)
     
     # # record
-    # camera.start_recording(f'./assets/{timestamp}_bird.h264')
+    # print("[MSG] Starting Recording...\n")
+    # camera.start_recording(filename)
     # camera.wait_recording(60)
     # camera.stop_recording()
+    # printf("[MSG] Captured Video...\n")
 
     pass
 
@@ -199,26 +205,29 @@ def capture_image():
 
     """
 
-    # save a timestamp
+    # timestamp
     # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
     timestamp = datetime.datetime.now()
-    filename = f'./assets/{timestamp}_bird.jpg'
-    filename = f'./assets/IMG.jpg'
 
-    # create camera object
-    camera = PiCamera()
+    # filename
+    filename = f'./assets/{timestamp}_bird.jpg'
+    # filename = f'./assets/IMG.jpg'
 
     # start camera, capture, delay, close
+    print("[MSG] Starting Camera...\n")
+    time.sleep(camera_delay)
+
+    camera = PiCamera()
+
     camera.start_preview()
     camera.capture(filename)
     time.sleep(2)
     camera.stop_preview()
+    print("[MSG] Captured Image...\n")
 
     # upload the new image into the directory
     with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c:  
          c.put(filename, path + "/IMG.jpg")
-
-    # send_email(epass, spass, filename)
 
     return filename
 
@@ -236,42 +245,37 @@ def main():
     print("For server: " + user + "@" + host)
     spass = input("Server Password:\n")
 
-    # variables needed for the main loop
-    exit = False
-    motion_detected = False
-
     # motion detection from GPIO pin (MOTION_PIN)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(MOTION_PIN, GPIO.IN)
-    # GPIO.add_event_detect(MOTION_PIN, GPIO.RISING, callback=capture_image, bouncetime=1000)  
+
     # when motion is detected, capture_image (upload new IMG to server) -> send_email
-    # 2 options:
-    #   1. have capture_image call send email
-    #      - with this option: make epass and spass gloabl variables
-    #   2. have it return the filename and call send_email from main, capture_image would no longer need to return anything
-    #      - with this option: get from capture image another way
+    # exits when CTRL-C is typed
     try:
         print("[MSG] Starting Motion Detection\n")
+        print('[MSG] Type CTRL-C to exit\n')
+        time.sleep(2)
+        print('[MSG] Active\n')
         while True:
             if GPIO.input(MOTION_PIN):
-                filename = capture_image()
-                send_email(epass, spass, filename)
                 print("[MSG] Motion Detected\n")
+                # capture image -> upload to server, overwriting old IMG -> save filename
+                filename = capture_image()
+                # pass in the email password, server password, and new filename
+                send_email(epass, spass, filename)
+                time.sleep(1)
     except KeyboardInterrupt:
         print("[MSG] Closing\n")
         GPIO.cleanup()
+        time.sleep(2)
+        print("[MSG] Inactive\n")
 
+
+    # For testing
     # filename = './assets/IMG.jpg'
     # filename = capture_image()
     # send_email(epass, spass, filename)
 
-    # while not exit:
-        # constantly check for motion to be detected until an exit command is entered or ctrl-c
-
-        # if motion_detected:
-            # if motion detected, capture image and pass the filename to send_email
-            # filename = capture_image()
-            # send_email(password, filename
 
     pass
     
