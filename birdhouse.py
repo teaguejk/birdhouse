@@ -62,12 +62,12 @@ min_area = 5000
 user = 'teaguejk'
 host = 'student2.cs.appstate.edu'
 path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse.site'
-spass = ""
+# spass = ""
 # Mailing list is stored in a csv file at /usr/local/apache2/htdocs/u/teaguejk/birdhouse.site/mailing_list.csv
 
 # Sender Email
 sender_email = 'zeroDoNotReply@gmail.com'
-epass = ""
+# epass = ""
 #------------------------------------------------------------------------------------------
 
 #==========================================================================================
@@ -243,17 +243,26 @@ def main():
     # motion detection from GPIO pin (MOTION_PIN)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(MOTION_PIN, GPIO.IN)
-    GPIO.add_event_detect(MOTION_PIN, GPIO.RISING, callback=capture_image, bouncetime=1000)  
+    # GPIO.add_event_detect(MOTION_PIN, GPIO.RISING, callback=capture_image, bouncetime=1000)  
     # when motion is detected, capture_image (upload new IMG to server) -> send_email
     # 2 options:
     #   1. have capture_image call send email
     #      - with this option: make epass and spass gloabl variables
     #   2. have it return the filename and call send_email from main, capture_image would no longer need to return anything
     #      - with this option: get from capture image another way
-
+    try:
+        print("[MSG] Starting Motion Detection\n")
+        while True:
+            if GPIO.input(MOTION_PIN):
+                filename = capture_image()
+                send_email(epass, spass, filename)
+                print("[MSG] Motion Detected\n")
+    except KeyboardInterrupt:
+        print("[MSG] Closing\n")
+        GPIO.cleanup()
 
     # filename = './assets/IMG.jpg'
-    filename = capture_image()
+    # filename = capture_image()
     # send_email(epass, spass, filename)
 
     # while not exit:
