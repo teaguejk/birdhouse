@@ -248,7 +248,7 @@ def main():
     # 2 options:
     #   1. have capture_image call send email
     #      - with this option: make epass and spass gloabl variables
-    #   2. have it return the filename and call send_email from main, capture_image would no longer return anything
+    #   2. have it return the filename and call send_email from main, capture_image would no longer need to return anything
     #      - with this option: get from capture image another way
 
 
