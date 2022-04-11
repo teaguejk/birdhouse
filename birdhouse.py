@@ -244,6 +244,11 @@ def main():
     print("For server: " + user + "@" + host)
     spass = input("Server Password:\n")
 
+    # For testing
+    # filename = './assets/IMG.jpg'
+    # filename = capture_image()
+    # send_email(epass, spass, filename)
+
     # motion detection from GPIO pin (MOTION_PIN)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(MOTION_PIN, GPIO.IN)
@@ -269,13 +274,9 @@ def main():
         time.sleep(2)
         print("[MSG] Inactive\n")
 
-
-    # For testing
-    # filename = './assets/IMG.jpg'
-    # filename = capture_image()
-    # send_email(epass, spass, filename)
-
-
+    # TODO
+    # Add ways to keep track of motion detected and upload it to the server to be put into the table on the website
+    
     pass
     
 if __name__ == "__main__":
