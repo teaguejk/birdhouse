@@ -226,7 +226,7 @@ def capture_image():
 
     # upload the new image into the directory
     with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c:  
-         c.put(filename, path + "/assets/IMG.jpg")
+        c.put(filename, path + "/assets/IMG.jpg")
 
     return filename
 
