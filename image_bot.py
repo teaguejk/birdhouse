@@ -10,7 +10,7 @@ Sends the most recent image to a discord channel
 import discord
 
 client = discord.Client()
-token = 'OTYzODIxNzc1NTgwNDMwNDE2.Ylbq-g.uP5v0ez9vglFDFWo3qoDqASFMag'
+token = ''
 
 @client.event
 async def on_ready():
