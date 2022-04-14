@@ -12,7 +12,7 @@ import os.path
 import glob
 
 client = discord.Client()
-token = ''
+token = 'OTYzODIxNzc1NTgwNDMwNDE2.Ylbq-g.0Bmms49gj9MyI9r-zAh1PXFPJZM'
 path = './assets/'
 filetype = file_type = r'/*jpg'
 
