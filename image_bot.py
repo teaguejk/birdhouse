@@ -42,7 +42,7 @@ async def on_message(message):
 		with open(recent, 'rb') as f:
 			img = discord.File(f)
 			await message.channel.send(file=img)
-	else:
+	else if message.content == '!help':
 		await message.channel.send("Use !bird to display the most recent image...")
 
 
