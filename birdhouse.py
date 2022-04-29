@@ -198,7 +198,7 @@ def capture_video():
 
     pass
 
-def capture_image():
+def capture_image(spass):
     """
     Function that captures a single image when called using pi camera
     Comment out when not on PI
@@ -223,7 +223,11 @@ def capture_image():
     camera.capture(filename)
     time.sleep(2)
     camera.stop_preview()
+    
     print("[MSG] Captured Image...\n")
+    
+    print("[MSG] Closing Camera...\n")
+    camera.close()
 
     # upload the new image into the directory
     with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c:  
@@ -265,14 +269,16 @@ def main():
             if GPIO.input(MOTION_PIN):
                 print("[MSG] Motion Detected\n")
                 # capture image -> upload to server, overwriting old IMG -> save filename
-                filename = capture_image()
+                filename = capture_image(spass)
                 # pass in the email password, server password, and new filename
                 send_email(epass, spass, filename)
+                print('Sleeping...\n')
                 time.sleep(1)
+                print('[MSG] Active\n')
     except KeyboardInterrupt:
         print("[MSG] Closing\n")
         GPIO.cleanup()
-        time.sleep(2)
+        time.sleep(120)
         print("[MSG] Inactive\n")
 
     # TODO
