@@ -6,49 +6,34 @@
 # Appalachian State University
 #
 # img/video files stored in ./assets and named in this format: {timestamp}_bird.jpg/mov
-# 
 # assumes that the student2.cs.appstate.edu server is hosting the site 
 # located at usr/local/apache2/htdocs/u/teaguejk/birdhouse.site
-# 
-# pi camera related things may be temporarily commented out 
-#
-# emails are sent from 'zeroDoNotReply@gmail.com' but can be changed
-#
-# passwords are entered on runtime for security
+# emails are sent from 'zeroDoNotReply@gmail.com'
+# passwords are entered at runtime
 #
 """
 
-#==========================================================================================
-# Setup
-
-#------------------------------------------------------------------------------------------
-# py imports
-import pandas as pd
-import numpy as np
 
 import time
 import datetime
 import argparse
-
 import cv2
 import imutils
-
-import smtplib, email, ssl
+import smtplib
+import email 
+import ssl
+import pandas as pd
+import numpy as np
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
 from fabric.connection import Connection
 
-# pi imports 
-# Comment out when not on PI
 import RPi.GPIO as GPIO
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 
-#------------------------------------------------------------------------------------------
-# Settings
 
 # GPIO Settings
 MOTION_PIN = 4
@@ -70,40 +55,6 @@ path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse.site'
 sender_email = 'zeroDoNotReply@gmail.com'
 # epass = ""
 
-#------------------------------------------------------------------------------------------
-
-#==========================================================================================
-# Notes
-
-"""
-
-
-# ssl._create_default_https_context = ssl._create_unverified_context
-
-# save image as an array 
-raw_capture = PiRGBArray(camera, size=tuple(resolution))
-
-# open cv loop
-for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True ):
-    # get the numpy array that represents the image
-    frame = f.array
-    timestamp = datetime.datetime.now()
-
-# create the camera object and capture
-    # camera = PiCamera()
-    # camera.start_preview()
-    # camera.capture('./img.jpg')
-    # time.sleep(2)
-    # camera.stop_preview()
-
-# server.sendmail(sender_email, recepient_emails[0], text) # send an email
-
-
-
-"""
-
-#==========================================================================================
-# Function defs
 
 def send_email(epass, spass, filename):
     """
@@ -115,11 +66,10 @@ def send_email(epass, spass, filename):
     # recipient email list
     # will eventually be retrieved from website
     # by reading a csv file into a pandas dataframe
-    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c, c.sftp() as sftp,   \
-         sftp.open(path + '/mailing_list.csv') as file:
-            mailing_list = pd.read_csv(file, skip_blank_lines=True, header=None).T
+    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c, c.sftp() as sftp, sftp.open(path + '/mailing_list.csv') as file:
+        mailing_list = pd.read_csv(file, skip_blank_lines=True, header=None).T
     # drop NaN or None type entries
-    mailing_list = mailing_list.dropna() 
+    mailing_list = mailing_list.dropna()
 
     # message setup
 
@@ -160,10 +110,8 @@ def send_email(epass, spass, filename):
         server.login(sender_email, epass)
         # loop through dataframe and send email to each row (address) 
         for row in mailing_list.iterrows(): 
-                server.sendmail(sender_email, row[1].values, text)
+            server.sendmail(sender_email, row[1].values, text)
 
-#------------------------------------------------------------------------------------------
-# Works only on PI
 
 def capture_video():
     """
@@ -196,7 +144,6 @@ def capture_video():
     # camera.stop_recording()
     # printf("[MSG] Captured Video...\n")
 
-    pass
 
 def capture_image(spass):
     """
@@ -223,24 +170,19 @@ def capture_image(spass):
     camera.capture(filename)
     time.sleep(2)
     camera.stop_preview()
-    
+
     print("[MSG] Captured Image...\n")
-    
     print("[MSG] Closing Camera...\n")
     camera.close()
 
     # upload the new image into the directory
-    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c:  
-        c.put(filename, path + "/assets/IMG.jpg")
+    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as con:  
+        con.put(filename, path + "/assets/IMG.jpg")
 
     return filename
 
     # pass
 
-#------------------------------------------------------------------------------------------
-
-#==========================================================================================
-# Main routine
 
 def main():
     # get passwords on start
@@ -281,13 +223,8 @@ def main():
         time.sleep(120)
         print("[MSG] Inactive\n")
 
-    # TODO
-    # Add ways to keep track of motion detected and upload it to the server to be put into the table on the website
-    
-    pass
-    
+    # TODO: Add ways to keep track of motion detected and upload it to the server to be put into the table on the website
+
+
 if __name__ == "__main__":
     main()
-
-#==========================================================================================
-
