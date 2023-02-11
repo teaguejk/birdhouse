@@ -16,14 +16,9 @@
 
 import time
 import datetime
-import argparse
-import cv2
-import imutils
 import smtplib
-import email 
 import ssl
 import pandas as pd
-import numpy as np
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -32,7 +27,6 @@ from fabric.connection import Connection
 
 import RPi.GPIO as GPIO
 from picamera import PiCamera
-from picamera.array import PiRGBArray
 
 
 # GPIO Settings
