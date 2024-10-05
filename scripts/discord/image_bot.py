@@ -13,7 +13,7 @@ import glob
 
 client = discord.Client()
 token = ''
-path = './assets/'
+path = './capture/'
 filetype = file_type = r'/*jpg'
 
 @client.event
