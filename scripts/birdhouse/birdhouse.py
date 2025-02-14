@@ -2,14 +2,7 @@
 #
 # Birdhouse Camera Project
 # Jaracah Teague
-# Capstone Project
 # Appalachian State University
-#
-# img/video files stored in ./assets and named in this format: {timestamp}_bird.jpg/mov
-# assumes that the student2.cs.appstate.edu server is hosting the site 
-# located at usr/local/apache2/htdocs/u/teaguejk/birdhouse.site
-# emails are sent from 'zeroDoNotReply@gmail.com'
-# passwords are entered at runtime
 #
 """
 
@@ -40,17 +33,15 @@ min_area = 5000
 
 # Web Server Setup
 user = 'teaguejk'
-host = 'student2.cs.appstate.edu'
-path = '/usr/local/apache2/htdocs/u/teaguejk/birdhouse.site'
-# spass = ""
-# Mailing list is stored in a csv file at /usr/local/apache2/htdocs/u/teaguejk/birdhouse.site/mailing_list.csv
+path = ''
+# Mailing list is stored in a csv file at <path>/mailing_list.csv
 
 # Sender Email
 sender_email = 'zeroDoNotReply@gmail.com'
 # epass = ""
 
 
-def send_email(epass, spass, filename):
+def send_email(epass, filename):
     """
     Function to send an email if given conditions are met,
     this email will contain an image attachment
@@ -60,7 +51,7 @@ def send_email(epass, spass, filename):
     # recipient email list
     # will eventually be retrieved from website
     # by reading a csv file into a pandas dataframe
-    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as c, c.sftp() as sftp, sftp.open(path + '/mailing_list.csv') as file:
+    with open('/mailing_list.csv') as file:
         mailing_list = pd.read_csv(file, skip_blank_lines=True, header=None).T
     # drop NaN or None type entries
     mailing_list = mailing_list.dropna()
@@ -139,20 +130,15 @@ def capture_video():
     # printf("[MSG] Captured Video...\n")
 
 
-def capture_image(spass):
+def capture_image():
     """
     Function that captures a single image when called using pi camera
     Comment out when not on PI
 
     """
 
-    # timestamp
-    # timestamp = time.strftime('%m-%d-%y-%H-%M-%S')  
     timestamp = datetime.datetime.now()
-
-    # filename
     filename = f'./assets/{timestamp}_bird.jpg'
-    # filename = f'./assets/IMG.jpg'
 
     # start camera, capture, delay, close
     print("[MSG] Starting Camera...\n")
@@ -169,10 +155,6 @@ def capture_image(spass):
     print("[MSG] Closing Camera...\n")
     camera.close()
 
-    # upload the new image into the directory
-    with Connection(host, user, connect_kwargs={'password': spass, 'allow_agent': False}) as con:  
-        con.put(filename, path + "/assets/IMG.jpg")
-
     return filename
 
     # pass
@@ -180,21 +162,13 @@ def capture_image(spass):
 
 def main():
     # get passwords on start
-    print("For Email: "  + sender_email)
+    print("Email: "  + sender_email)
     epass = input("Email Password:\n")
-    print("For server: " + user + "@" + host)
-    spass = input("Server Password:\n")
-
-    # For testing
-    # filename = './assets/IMG.jpg'
-    # filename = capture_image()
-    # send_email(epass, spass, filename)
 
     # motion detection from GPIO pin (MOTION_PIN)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(MOTION_PIN, GPIO.IN)
 
-    # when motion is detected, capture_image (upload new IMG to server) -> send_email
     # exits when CTRL-C is typed
     try:
         print("[MSG] Starting Motion Detection\n")
@@ -204,10 +178,10 @@ def main():
         while True:
             if GPIO.input(MOTION_PIN):
                 print("[MSG] Motion Detected\n")
-                # capture image -> upload to server, overwriting old IMG -> save filename
-                filename = capture_image(spass)
-                # pass in the email password, server password, and new filename
-                send_email(epass, spass, filename)
+                filename = capture_image()
+
+                send_email(epass, filename)
+
                 print('Sleeping...\n')
                 time.sleep(1)
                 print('[MSG] Active\n')
@@ -216,9 +190,6 @@ def main():
         GPIO.cleanup()
         time.sleep(120)
         print("[MSG] Inactive\n")
-
-    # TODO: Add ways to keep track of motion detected and upload it to the server to be put into the table on the website
-
 
 if __name__ == "__main__":
     main()
