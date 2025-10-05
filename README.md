@@ -1,7 +1,7 @@
 # birdhouse
 Code for my birdhouse camera project, originally written as my capstone project at Appalachian State University.
 
-## Captstone Version (branch V1)
+## Capstone Version (branch V1)
 
 ### Files Included
 - birdhouse.py - script that checks for motion on a raspberry pi, captures an image, sends it by email, and uploads it to a webserver
