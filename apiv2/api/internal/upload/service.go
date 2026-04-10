@@ -90,14 +90,14 @@ func (s *Service) Create(ctx context.Context, image *models.File) error {
 	return nil
 }
 
-func (s *Service) Delete(ctx context.Context, userID, id string) error {
+func (s *Service) Delete(ctx context.Context, deviceID, id string) error {
 	image, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve image: %w", err)
 	}
 
-	if image.UserID != userID {
-		return fmt.Errorf("unauthorized: user does not own the image")
+	if image.DeviceID != deviceID {
+		return fmt.Errorf("unauthorized: device does not own the image")
 	}
 
 	err = s.repo.Delete(ctx, id)
@@ -108,15 +108,15 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	return nil
 }
 
-func (s *Service) DeleteByResource(ctx context.Context, userID, resourceType, resourceID string) error {
+func (s *Service) DeleteByResource(ctx context.Context, deviceID, resourceType, resourceID string) error {
 	images, err := s.repo.GetByResource(ctx, resourceType, resourceID, false)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve images: %w", err)
 	}
 
 	for _, image := range images {
-		if image.UserID != userID {
-			return fmt.Errorf("unauthorized: user does not own all images")
+		if image.DeviceID != deviceID {
+			return fmt.Errorf("unauthorized: device does not own all images")
 		}
 
 		err = s.repo.Delete(ctx, image.ID)
@@ -128,14 +128,14 @@ func (s *Service) DeleteByResource(ctx context.Context, userID, resourceType, re
 	return nil
 }
 
-func (s *Service) DeleteByFilename(ctx context.Context, userID, filename string) error {
+func (s *Service) DeleteByFilename(ctx context.Context, deviceID, filename string) error {
 	image, err := s.repo.GetByFilename(ctx, filename)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve images: %w", err)
 	}
 
-	if image.UserID != userID {
-		return fmt.Errorf("unauthorized: user does not own the image")
+	if image.DeviceID != deviceID {
+		return fmt.Errorf("unauthorized: device does not own the image")
 	}
 
 	err = s.repo.Delete(ctx, image.ID)

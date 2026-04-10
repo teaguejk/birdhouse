@@ -51,6 +51,7 @@ func main() {
 	handlers := api.InitHandlers(services, logger, db)
 
 	srv := server.New(sEnv, services)
+	srv.RegisterHandler(handlers.Device)
 	srv.RegisterHandler(handlers.Health)
 	srv.RegisterHandler(handlers.Upload)
 

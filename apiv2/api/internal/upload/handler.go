@@ -94,9 +94,9 @@ func (h *Handler) GetByResource(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	uid := r.Context().Value(constants.UserIDKey).(string)
-	if uid == "" {
-		responses.WriteError(w, "can not determine requesting user", http.StatusBadRequest)
+	deviceID := r.Context().Value(constants.DeviceIDKey).(string)
+	if deviceID == "" {
+		responses.WriteError(w, "can not determine requesting device", http.StatusBadRequest)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Delete(r.Context(), uid, imageID)
+	err := h.service.Delete(r.Context(), deviceID, imageID)
 	if err != nil {
 		h.logger.Error(fmt.Sprintf("failed to delete image: %v", err))
 		responses.WriteError(w, "failed to delete image", http.StatusInternalServerError)
@@ -139,9 +139,9 @@ func (h *Handler) Complete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GenerateUploadURL(w http.ResponseWriter, r *http.Request) {
-	uid := r.Context().Value(constants.UserIDKey).(string)
-	if uid == "" {
-		responses.WriteError(w, "can not determine requesting user", http.StatusBadRequest)
+	deviceID := r.Context().Value(constants.DeviceIDKey).(string)
+	if deviceID == "" {
+		responses.WriteError(w, "can not determine requesting device", http.StatusBadRequest)
 		return
 	}
 
@@ -173,7 +173,7 @@ func (h *Handler) GenerateUploadURL(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = h.service.Create(r.Context(), &models.File{
-			UserID:       uid,
+			DeviceID:       deviceID,
 			Filename:     uploadKey,
 			OriginalName: filename,
 			MimeType:     mimeType,

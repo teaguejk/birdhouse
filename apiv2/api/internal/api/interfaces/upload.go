@@ -24,9 +24,9 @@ type UploadService interface {
 	UpdateSortOrder(ctx context.Context, resourceType, resourceID string, filenames []string) error
 	Complete(ctx context.Context, uploadKey string) error
 	Create(ctx context.Context, image *models.File) error
-	Delete(ctx context.Context, userID, id string) error
-	DeleteByResource(ctx context.Context, userID, resourceType, resourceID string) error
-	DeleteByFilename(ctx context.Context, userID, filename string) error
+	Delete(ctx context.Context, deviceID, id string) error
+	DeleteByResource(ctx context.Context, deviceID, resourceType, resourceID string) error
+	DeleteByFilename(ctx context.Context, deviceID, filename string) error
 	GetByResource(ctx context.Context, resourceType, resourceID string, assignedOnly bool) ([]models.File, error)
 	GetByID(ctx context.Context, id string) (*models.File, error)
 	GetByFilename(ctx context.Context, filename string) (*models.File, error)

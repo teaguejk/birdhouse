@@ -33,13 +33,13 @@ func (r *PostgreSQLRepository) Create(ctx context.Context, image *models.File) e
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			INSERT INTO uploads (user_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, expires_at)
+			INSERT INTO uploads (device_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, expires_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			RETURNING id
 		`
 
 		err := tx.QueryRow(ctx, query,
-			image.UserID,
+			image.DeviceID,
 			image.ResourceType,
 			image.ResourceID,
 			image.Status,
@@ -172,18 +172,18 @@ func (r *PostgreSQLRepository) DeleteByResourceAndFilenames(ctx context.Context,
 func (r *PostgreSQLRepository) GetByID(ctx context.Context, id string) (*models.File, error) {
 	var image models.File
 	var dbId int
-	var dbUserID *int
+	var dbDeviceID *int
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			SELECT id, user_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
+			SELECT id, device_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
 			FROM uploads
 			WHERE id = $1
 		`
 
 		err := tx.QueryRow(ctx, query, id).Scan(
 			&dbId,
-			&dbUserID,
+			&dbDeviceID,
 			&image.ResourceType,
 			&image.ResourceID,
 			&image.Status,
@@ -205,10 +205,10 @@ func (r *PostgreSQLRepository) GetByID(ctx context.Context, id string) (*models.
 		}
 
 		image.ID = fmt.Sprintf("%d", dbId)
-		if dbUserID == nil {
-			image.UserID = ""
+		if dbDeviceID == nil {
+			image.DeviceID = ""
 		} else {
-			image.UserID = fmt.Sprintf("%d", *dbUserID)
+			image.DeviceID = fmt.Sprintf("%d", *dbDeviceID)
 		}
 		return nil
 	})
@@ -225,7 +225,7 @@ func (r *PostgreSQLRepository) GetByResource(ctx context.Context, resourceType, 
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			SELECT id, user_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
+			SELECT id, device_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
 			FROM uploads
 			WHERE resource_type = $1 AND resource_id = $2
 		`
@@ -249,9 +249,9 @@ func (r *PostgreSQLRepository) GetByResource(ctx context.Context, resourceType, 
 		for rows.Next() {
 			var image models.File
 			var dbID int
-			var dbUserID *int
+			var dbDeviceID *int
 
-			if err := rows.Scan(&dbID, &dbUserID, &image.ResourceType, &image.ResourceID,
+			if err := rows.Scan(&dbID, &dbDeviceID, &image.ResourceType, &image.ResourceID,
 				&image.Status, &image.Filename,
 				&image.OriginalName, &image.MimeType, &image.Size,
 				&image.URL, &image.SortOrder, &image.ExpiresAt, &image.CreatedAt,
@@ -260,10 +260,10 @@ func (r *PostgreSQLRepository) GetByResource(ctx context.Context, resourceType, 
 			}
 
 			image.ID = fmt.Sprintf("%d", dbID)
-			if dbUserID == nil {
-				image.UserID = ""
+			if dbDeviceID == nil {
+				image.DeviceID = ""
 			} else {
-				image.UserID = fmt.Sprintf("%d", *dbUserID)
+				image.DeviceID = fmt.Sprintf("%d", *dbDeviceID)
 			}
 			images = append(images, image)
 
@@ -282,18 +282,18 @@ func (r *PostgreSQLRepository) GetByResource(ctx context.Context, resourceType, 
 func (r *PostgreSQLRepository) GetByFilename(ctx context.Context, filename string) (*models.File, error) {
 	var image models.File
 	var dbId int
-	var dbUserID *int
+	var dbDeviceID *int
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			SELECT id, user_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
+			SELECT id, device_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
 			FROM uploads
 			WHERE filename = $1
 		`
 
 		err := tx.QueryRow(ctx, query, filename).Scan(
 			&dbId,
-			&dbUserID,
+			&dbDeviceID,
 			&image.ResourceType,
 			&image.ResourceID,
 			&image.Status,
@@ -315,10 +315,10 @@ func (r *PostgreSQLRepository) GetByFilename(ctx context.Context, filename strin
 		}
 
 		image.ID = fmt.Sprintf("%d", dbId)
-		if dbUserID == nil {
-			image.UserID = ""
+		if dbDeviceID == nil {
+			image.DeviceID = ""
 		} else {
-			image.UserID = fmt.Sprintf("%d", *dbUserID)
+			image.DeviceID = fmt.Sprintf("%d", *dbDeviceID)
 		}
 
 		return nil
@@ -336,7 +336,7 @@ func (r *PostgreSQLRepository) GetExpiredPending(ctx context.Context) ([]models.
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			SELECT id, user_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
+			SELECT id, device_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
 			FROM uploads
 			WHERE status = $1 AND expires_at < NOW()
 		`
@@ -350,9 +350,9 @@ func (r *PostgreSQLRepository) GetExpiredPending(ctx context.Context) ([]models.
 		for rows.Next() {
 			var image models.File
 			var dbId int
-			var dbUserID *int
+			var dbDeviceID *int
 
-			if err := rows.Scan(&dbId, &dbUserID, &image.ResourceType, &image.ResourceID,
+			if err := rows.Scan(&dbId, &dbDeviceID, &image.ResourceType, &image.ResourceID,
 				&image.Status, &image.Filename,
 				&image.OriginalName, &image.MimeType, &image.Size,
 				&image.URL, &image.SortOrder, &image.ExpiresAt, &image.CreatedAt,
@@ -361,10 +361,10 @@ func (r *PostgreSQLRepository) GetExpiredPending(ctx context.Context) ([]models.
 			}
 
 			image.ID = fmt.Sprintf("%d", dbId)
-			if dbUserID == nil {
-				image.UserID = ""
+			if dbDeviceID == nil {
+				image.DeviceID = ""
 			} else {
-				image.UserID = fmt.Sprintf("%d", *dbUserID)
+				image.DeviceID = fmt.Sprintf("%d", *dbDeviceID)
 			}
 			images = append(images, image)
 		}
