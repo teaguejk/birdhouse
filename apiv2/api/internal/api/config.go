@@ -2,8 +2,11 @@ package api
 
 import (
 	"api/pkg/ai"
+	"api/pkg/config"
 	"api/pkg/database"
 	"api/pkg/storage"
+	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 )
@@ -16,93 +19,90 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port             string        `env:"PORT"`
-	ReadTimeout      time.Duration `env:"READ_TIMEOUT"`
-	WriteTimeout     time.Duration `env:"WRITE_TIMEOUT"`
-	IdleTimeout      time.Duration `env:"IDLE_TIMEOUT"`
-	RateLimitEnabled bool          `env:"RATE_LIMIT_ENABLED"`
-	AllowedOrigins   string        `env:"ALLOWED_ORIGINS"`
-	PublicRoutes     []string      `env:"PUBLIC_ROUTES"`
+	Port             string          `json:"port"`
+	ReadTimeout      config.Duration `json:"read_timeout"`
+	WriteTimeout     config.Duration `json:"write_timeout"`
+	IdleTimeout      config.Duration `json:"idle_timeout"`
+	RateLimitEnabled bool            `json:"rate_limit_enabled"`
+	AllowedOrigins   string          `json:"allowed_origins"`
+	PublicRoutes     []string        `json:"public_routes"`
 }
 
-func NewDefaultConfig() *Config {
-	return &Config{
-		Server:   NewServerDefaultConfig(),
-		Storage:  NewStorageDefaultConfig(),
-		Database: NewDatabaseDefaultConfig(),
-		AI:       NewAIDefaultConfig(),
+func LoadConfig(path string) (*Config, error) {
+	cfg := &Config{
+		Server: defaultServerConfig(),
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %w", err)
+	}
+	defer f.Close()
+
+	if err := json.NewDecoder(f).Decode(cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %w", err)
+	}
+
+	applyEnvOverrides(cfg)
+
+	if err := validate(cfg); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
+	}
+
+	return cfg, nil
+}
+
+func validate(cfg *Config) error {
+	if cfg.Database == nil {
+		return fmt.Errorf("database config is required")
+	}
+	if cfg.Database.Type == "" {
+		return fmt.Errorf("database.type is required")
+	}
+
+	if cfg.Storage == nil {
+		return fmt.Errorf("storage config is required")
+	}
+	if cfg.Storage.Type == "" {
+		return fmt.Errorf("storage.type is required")
+	}
+
+	if cfg.AI == nil {
+		return fmt.Errorf("ai config is required")
+	}
+	if cfg.AI.Type == "" {
+		return fmt.Errorf("ai.type is required")
+	}
+
+	return nil
+}
+
+func applyEnvOverrides(cfg *Config) {
+	if v := os.Getenv("PORT"); v != "" {
+		cfg.Server.Port = v
+	}
+	if cfg.Database != nil {
+		if v := os.Getenv("DB_PASSWORD"); v != "" {
+			cfg.Database.Password = v
+		}
+	}
+	if cfg.AI != nil {
+		if v := os.Getenv("ANTHROPIC_API_KEY"); v != "" {
+			cfg.AI.APIKey = v
+		}
 	}
 }
 
-func NewAIDefaultConfig() *ai.Config {
-	return &ai.Config{
-		APIKey:  os.Getenv("ANTHROPIC_API_KEY"),
-		APIURL:  "https://api.anthropic.com/v1/messages",
-		Model:   "claude-sonnet-4-20250514",
-		Timeout: 30 * time.Second,
-	}
-}
-
-func NewServerDefaultConfig() *ServerConfig {
+func defaultServerConfig() *ServerConfig {
 	return &ServerConfig{
 		Port:             "8080",
-		ReadTimeout:      5 * time.Second,
-		WriteTimeout:     10 * time.Second,
-		IdleTimeout:      120 * time.Second,
+		ReadTimeout:      config.Duration{Duration: 5 * time.Second},
+		WriteTimeout:     config.Duration{Duration: 10 * time.Second},
+		IdleTimeout:      config.Duration{Duration: 120 * time.Second},
 		RateLimitEnabled: false,
 		AllowedOrigins:   "*",
 		PublicRoutes: []string{
-			"GET /health",
-			"GET /uploads/{filename}",
+			"GET /health/healthcheck",
 		},
 	}
-}
-
-func NewStorageDefaultConfig() *storage.Config {
-	// cfg := &storage.Config{
-	// 	Type:    "local",
-	// 	BaseURL: "http://localhost:8080/uploads",
-	// 	Options: map[string]string{
-	// 		"base_path": "/Users/jteague/dev/apps/birdhouse/shared/uploads",
-	// 	},
-	// }
-
-	// cfg := &storage.Config{
-	// 	Type: "s3",
-	// 	Options: map[string]string{
-	// 		"bucket": "birdhouse-uploads",
-	// 		"region": "us-east-1",
-	// 	},
-	// }
-
-	cfg := &storage.Config{
-		Type: "gcs",
-		Options: map[string]string{
-			"bucket": "birdhouse-uploads",
-		},
-	}
-
-	return cfg
-}
-
-func NewDatabaseDefaultConfig() *database.Config {
-	cfg := &database.Config{
-		Name:               "postgres",
-		User:               "postgres",
-		Host:               "127.0.0.1",
-		Port:               "5432",
-		SSLMode:            "disable",
-		ConnectionTimeout:  30,
-		Password:           "password",
-		SSLCertPath:        "",
-		SSLKeyPath:         "",
-		SSLRootCertPath:    "",
-		PoolMinConnections: "1",
-		PoolMaxConnections: "10",
-		PoolMaxConnLife:    5 * time.Minute,
-		PoolMaxConnIdle:    1 * time.Minute,
-		PoolHealthCheck:    1 * time.Minute,
-	}
-
-	return cfg
 }

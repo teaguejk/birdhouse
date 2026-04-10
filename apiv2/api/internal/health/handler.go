@@ -29,6 +29,7 @@ func (h *Handler) Name() string {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /healthcheck", h.HealthCheck)
+	mux.HandleFunc("GET /status", h.Status)
 }
 
 func (h *Handler) Initialize(ctx context.Context) error {
@@ -42,6 +43,12 @@ func (h *Handler) Shutdown(ctx context.Context) error {
 }
 
 func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	responses.WriteJSON(w, map[string]string{
+		"status": "ok",
+	}, http.StatusOK)
+}
+
+func (h *Handler) Status(w http.ResponseWriter, r *http.Request) {
 	err := h.db.Ping(r.Context())
 	if err != nil {
 		message := fmt.Sprintf("database was unreachable %s", err)
@@ -49,9 +56,8 @@ func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := make(map[string]any)
-	response["server_status"] = "server is active and accepting requests"
-	response["db_status"] = "database is active and accepting connections"
-
-	responses.WriteJSON(w, response, http.StatusOK)
+	responses.WriteJSON(w, map[string]string{
+		"server": "ok",
+		"database": "ok",
+	}, http.StatusOK)
 }

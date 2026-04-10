@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"api/internal/api"
 	"api/internal/api/interfaces"
@@ -34,9 +33,9 @@ func New(env *api.ServerEnv, services *api.Services) *Server {
 	server.httpServer = &http.Server{
 		Addr:         ":" + env.Config.Port,
 		Handler:      handler,
-		ReadTimeout:  time.Duration(env.Config.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(env.Config.WriteTimeout) * time.Second,
-		IdleTimeout:  time.Duration(env.Config.IdleTimeout) * time.Second,
+		ReadTimeout:  env.Config.ReadTimeout.Duration,
+		WriteTimeout: env.Config.WriteTimeout.Duration,
+		IdleTimeout:  env.Config.IdleTimeout.Duration,
 	}
 
 	return server

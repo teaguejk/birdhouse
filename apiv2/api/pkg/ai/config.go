@@ -1,10 +1,9 @@
 package ai
 
-import "time"
+import "encoding/json"
 
 type Config struct {
-	APIKey  string        `json:"-"`
-	APIURL  string        `json:"api_url"`
-	Model   string        `json:"model"`
-	Timeout time.Duration `json:"timeout"`
+	Type    string          `json:"type"`
+	APIKey  string          `json:"-"`
+	Options json.RawMessage `json:"options"`
 }

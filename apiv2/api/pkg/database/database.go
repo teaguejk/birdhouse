@@ -9,6 +9,12 @@ import (
 	pgx "github.com/jackc/pgx/v4"
 )
 
+type Database interface {
+	Ping(ctx context.Context) error
+	Close(ctx context.Context)
+	GetDB() interface{}
+}
+
 var (
 	ErrNotFound    = errors.New("record not found")
 	ErrKeyConflict = errors.New("key conflict")

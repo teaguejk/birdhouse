@@ -23,10 +23,17 @@ func main() {
 	logger := logging.New()
 	ctx = logging.WithLogger(ctx, logger)
 
-	cfg := api.NewDefaultConfig()
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "config/config.dev.json"
+	}
 
-	// db, err := database.NewPostgresDB(ctx, dbCfg)
-	db, err := database.NewPostgresDBWithName(ctx, cfg.Database, "birdhouse")
+	cfg, err := api.LoadConfig(configPath)
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
+	db, err := database.NewDatabase(ctx, cfg.Database)
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
@@ -36,8 +43,11 @@ func main() {
 		log.Fatalf("failed to initialize storage provider: %v", err)
 	}
 
-	ai := ai.NewClient(cfg.AI)
-	if !ai.IsConfigured() {
+	aiClient, err := ai.NewClient(cfg.AI)
+	if err != nil {
+		log.Fatalf("failed to initialize ai client: %v", err)
+	}
+	if !aiClient.IsConfigured() {
 		logger.Warn("ai was not configured, ai features will be unavailable")
 	}
 
@@ -47,7 +57,7 @@ func main() {
 	}
 
 	repos := api.InitRepositories(db)
-	services := api.InitServices(repos, logger, storage, ai)
+	services := api.InitServices(repos, logger, storage, aiClient)
 	handlers := api.InitHandlers(services, logger, db)
 
 	srv := server.New(sEnv, services)

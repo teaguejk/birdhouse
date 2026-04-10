@@ -23,15 +23,6 @@ func AuthMiddleware(deviceService interfaces.DeviceService, publicRoutes []strin
 				return
 			}
 
-			// check prefix matches for public routes (e.g. "GET /health" matches "GET /health/healthcheck")
-			for route := range publicSet {
-				parts := strings.SplitN(route, " ", 2)
-				if len(parts) == 2 && parts[0] == r.Method && strings.HasPrefix(r.URL.Path, parts[1]) {
-					next.ServeHTTP(w, r)
-					return
-				}
-			}
-
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
 				responses.Challenge(w)
