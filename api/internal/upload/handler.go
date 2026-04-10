@@ -145,7 +145,7 @@ func (h *Handler) GenerateUploadURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request *models.FileUploadRequest
+	var request models.FileUploadRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		responses.WriteError(w, "invalid request body", http.StatusBadRequest)
 		return
