@@ -21,6 +21,7 @@ func WriteError(w http.ResponseWriter, message string, statusCode int) {
 
 func ChallengeApiKey(w http.ResponseWriter) {
 	w.Header().Set("www-authenticate", "x-api-key")
+	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func ApiKeyError(w http.ResponseWriter) {
@@ -28,14 +29,14 @@ func ApiKeyError(w http.ResponseWriter) {
 	WriteError(w, "invalid or inactive api key", http.StatusUnauthorized)
 }
 
-func TokenError(w http.ResponseWriter, errorMsg string) {
-	w.Header().Set("Token-Error", errorMsg)
-	w.WriteHeader(http.StatusUnauthorized)
-}
-
 func ChallengeBearer(w http.ResponseWriter) {
 	w.Header().Set("www-authenticate", "bearer")
 	w.WriteHeader(http.StatusUnauthorized)
+}
+
+func TokenError(w http.ResponseWriter, errorMsg string) {
+	w.Header().Set("www-authenticate", "bearer")
+	WriteError(w, errorMsg, http.StatusUnauthorized)
 }
 
 type ResponseWriter struct {
