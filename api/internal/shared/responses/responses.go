@@ -19,12 +19,21 @@ func WriteError(w http.ResponseWriter, message string, statusCode int) {
 	json.NewEncoder(w).Encode(map[string]string{"error": message})
 }
 
+func ChallengeApiKey(w http.ResponseWriter) {
+	w.Header().Set("www-authenticate", "x-api-key")
+}
+
+func ApiKeyError(w http.ResponseWriter) {
+	w.Header().Set("www-authenticate", "x-api-key")
+	WriteError(w, "invalid or inactive api key", http.StatusUnauthorized)
+}
+
 func TokenError(w http.ResponseWriter, errorMsg string) {
 	w.Header().Set("Token-Error", errorMsg)
 	w.WriteHeader(http.StatusUnauthorized)
 }
 
-func Challenge(w http.ResponseWriter) {
+func ChallengeBearer(w http.ResponseWriter) {
 	w.Header().Set("www-authenticate", "bearer")
 	w.WriteHeader(http.StatusUnauthorized)
 }

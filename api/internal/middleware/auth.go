@@ -6,7 +6,6 @@ import (
 	"api/internal/shared/responses"
 	"context"
 	"net/http"
-	"strings"
 )
 
 func AuthMiddleware(deviceService interfaces.DeviceService, publicRoutes []string) func(http.Handler) http.Handler {
@@ -23,23 +22,15 @@ func AuthMiddleware(deviceService interfaces.DeviceService, publicRoutes []strin
 				return
 			}
 
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				responses.Challenge(w)
+			apiKey := r.Header.Get("x-api-key")
+			if apiKey == "" {
+				responses.ChallengeApiKey(w)
 				return
 			}
-
-			parts := strings.SplitN(authHeader, " ", 2)
-			if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
-				responses.TokenError(w, "invalid authorization header format")
-				return
-			}
-
-			apiKey := parts[1]
 
 			device, err := deviceService.Authenticate(r.Context(), apiKey)
 			if err != nil {
-				responses.TokenError(w, "invalid or inactive API key")
+				responses.ApiKeyError(w)
 				return
 			}
 
