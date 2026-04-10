@@ -5,7 +5,12 @@
     "write_timeout": "10s",
     "idle_timeout": "2m",
     "rate_limit_enabled": false,
-    "allowed_origins": "*",
+    "cors": {
+      "allowed_origins": ["*"],
+      "allowed_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "allowed_headers": ["Content-Type", "Authorization"],
+      "max_age": 86400
+    },
     "public_routes": [
       "GET /health/healthcheck"
     ]

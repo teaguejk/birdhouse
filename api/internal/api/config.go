@@ -24,8 +24,15 @@ type ServerConfig struct {
 	WriteTimeout     config.Duration `json:"write_timeout"`
 	IdleTimeout      config.Duration `json:"idle_timeout"`
 	RateLimitEnabled bool            `json:"rate_limit_enabled"`
-	AllowedOrigins   string          `json:"allowed_origins"`
+	CORS             *CORSConfig     `json:"cors"`
 	PublicRoutes     []string        `json:"public_routes"`
+}
+
+type CORSConfig struct {
+	AllowedOrigins []string `json:"allowed_origins"`
+	AllowedMethods []string `json:"allowed_methods"`
+	AllowedHeaders []string `json:"allowed_headers"`
+	MaxAge         int      `json:"max_age"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -100,7 +107,12 @@ func defaultServerConfig() *ServerConfig {
 		WriteTimeout:     config.Duration{Duration: 10 * time.Second},
 		IdleTimeout:      config.Duration{Duration: 120 * time.Second},
 		RateLimitEnabled: false,
-		AllowedOrigins:   "*",
+		CORS: &CORSConfig{
+			AllowedOrigins: []string{"*"},
+			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders: []string{"Content-Type", "Authorization"},
+			MaxAge:         86400,
+		},
 		PublicRoutes: []string{
 			"GET /health/healthcheck",
 		},
