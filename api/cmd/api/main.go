@@ -43,11 +43,11 @@ func main() {
 		log.Fatalf("failed to initialize storage provider: %v", err)
 	}
 
-	ai, err := ai.NewClient(cfg.AI)
+	aiClient, err := ai.NewClient(cfg.AI)
 	if err != nil {
 		log.Fatalf("failed to initialize ai client: %v", err)
 	}
-	if !ai.IsConfigured() {
+	if !aiClient.IsConfigured() {
 		logger.Warn("ai was not configured, ai features will be unavailable")
 	}
 
@@ -57,7 +57,7 @@ func main() {
 	}
 
 	repos := api.InitRepositories(db)
-	services := api.InitServices(repos, logger, storage, ai)
+	services := api.InitServices(repos, logger, storage, aiClient)
 	handlers := api.InitHandlers(services, logger, db)
 
 	srv := server.New(sEnv, services)

@@ -40,8 +40,9 @@ func NewImageValidator() *FileValidator {
 }
 
 func (v *FileValidator) ValidateFile(file multipart.File, header *multipart.FileHeader) error {
-	// Reset file position
-	file.Seek(0, io.SeekStart)
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("failed to reset file position: %w", err)
+	}
 
 	// Check file size
 	if header.Size > v.MaxFileSize {
@@ -77,8 +78,9 @@ func (v *FileValidator) ValidateFile(file multipart.File, header *multipart.File
 		return err
 	}
 
-	// Reset file position for subsequent use
-	file.Seek(0, io.SeekStart)
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("failed to reset file position: %w", err)
+	}
 
 	return nil
 }
