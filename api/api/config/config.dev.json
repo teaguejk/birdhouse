@@ -1,0 +1,43 @@
+{
+  "server": {
+    "port": "8080",
+    "read_timeout": "5s",
+    "write_timeout": "10s",
+    "idle_timeout": "2m",
+    "rate_limit_enabled": false,
+    "allowed_origins": "*",
+    "public_routes": [
+      "GET /health/healthcheck"
+    ]
+  },
+  "storage": {
+    "type": "gcs",
+    "options": {
+      "bucket": "birdhouse-uploads"
+    }
+  },
+  "database": {
+    "type": "postgres",
+    "options": {
+      "name": "birdhouse",
+      "user": "postgres",
+      "host": "127.0.0.1",
+      "port": "5432",
+      "ssl_mode": "disable",
+      "connection_timeout": 30,
+      "pool_min_connections": "1",
+      "pool_max_connections": "10",
+      "pool_max_conn_life": "5m",
+      "pool_max_conn_idle": "1m",
+      "pool_health_check": "1m"
+    }
+  },
+  "ai": {
+    "type": "anthropic",
+    "options": {
+      "api_url": "https://api.anthropic.com/v1/messages",
+      "model": "claude-sonnet-4-20250514",
+      "timeout": "30s"
+    }
+  }
+}
