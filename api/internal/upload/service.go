@@ -4,6 +4,7 @@ import (
 	"api/internal/api/interfaces"
 	"api/internal/shared/models"
 	"api/pkg/logging"
+	"api/pkg/pagination"
 	"api/pkg/storage"
 	"api/pkg/utils"
 	"context"
@@ -144,6 +145,19 @@ func (s *Service) DeleteByFilename(ctx context.Context, deviceID, filename strin
 	}
 
 	return nil
+}
+
+func (s *Service) GetByDevice(ctx context.Context, deviceID string, args *pagination.Args) (*pagination.Response, error) {
+	files, total, err := s.repo.GetByDevice(ctx, deviceID, args.Page, args.PageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, f := range files {
+		files[i].URL = s.storage.GetURL(f.Filename)
+	}
+
+	return pagination.NewResponse(files, total, args), nil
 }
 
 func (s *Service) GetByResource(ctx context.Context, resourceType, resourceID string, assignedOnly bool) ([]models.File, error) {

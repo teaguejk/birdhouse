@@ -4,22 +4,6 @@ import (
 	"time"
 )
 
-// PaginationMeta contains pagination metadata
-type PaginationMeta struct {
-	Page       int  `json:"page"`
-	Limit      int  `json:"limit"`
-	Total      int  `json:"total"`
-	TotalPages int  `json:"total_pages"`
-	HasNext    bool `json:"has_next"`
-	HasPrev    bool `json:"has_prev"`
-}
-
-// PaginatedResponse wraps paginated results
-type PaginatedResponse struct {
-	Data       interface{}     `json:"data"`
-	Pagination *PaginationMeta `json:"pagination"`
-}
-
 // APIResponse is a standard API response wrapper
 type APIResponse struct {
 	Success bool        `json:"success"`

@@ -6,20 +6,34 @@ import (
 	"api/internal/shared/responses"
 	"context"
 	"net/http"
+	"strings"
 )
 
 func AuthMiddleware(deviceService interfaces.DeviceService, publicRoutes []string) func(http.Handler) http.Handler {
-	publicSet := make(map[string]bool, len(publicRoutes))
+	exactRoutes := make(map[string]bool)
+	var prefixRoutes []string
+
 	for _, route := range publicRoutes {
-		publicSet[route] = true
+		if strings.HasSuffix(route, "*") {
+			prefixRoutes = append(prefixRoutes, strings.TrimSuffix(route, "*"))
+		} else {
+			exactRoutes[route] = true
+		}
 	}
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			routeKey := r.Method + " " + r.URL.Path
-			if publicSet[routeKey] {
+			if exactRoutes[routeKey] {
 				next.ServeHTTP(w, r)
 				return
+			}
+
+			for _, prefix := range prefixRoutes {
+				if strings.HasPrefix(routeKey, prefix) {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
 
 			apiKey := r.Header.Get("x-api-key")

@@ -13,8 +13,7 @@
     },
     "public_routes": [
       "GET /health/healthcheck",
-      "GET /uploads/latest",
-      "GET /uploads/:id"
+      "GET /uploads/*"
     ]
   },
   "storage": {

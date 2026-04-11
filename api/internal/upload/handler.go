@@ -6,6 +6,7 @@ import (
 	"api/internal/shared/models"
 	"api/internal/shared/responses"
 	"api/pkg/logging"
+	"api/pkg/pagination"
 	"api/pkg/storage"
 	"context"
 	"encoding/json"
@@ -37,6 +38,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /init", h.GenerateUploadURL)
 	mux.HandleFunc("POST /complete", h.Complete)
 
+	mux.HandleFunc("GET /device/{device_id}", h.GetByDevice)
 	mux.HandleFunc("GET /latest", h.GetLatest)
 	mux.HandleFunc("GET /meta/{id}", h.Get)
 	mux.HandleFunc("GET /meta/{resource_type}/{resource_id}", h.GetByResource)
@@ -52,6 +54,25 @@ func (h *Handler) Initialize(ctx context.Context) error {
 func (h *Handler) Shutdown(ctx context.Context) error {
 	h.logger.Info(fmt.Sprintf("shutting down: %s", h.Name()))
 	return nil
+}
+
+func (h *Handler) GetByDevice(w http.ResponseWriter, r *http.Request) {
+	deviceID := r.PathValue("device_id")
+	if deviceID == "" {
+		responses.WriteError(w, "device ID is required", http.StatusBadRequest)
+		return
+	}
+
+	args := pagination.GetArgs(r)
+
+	result, err := h.service.GetByDevice(r.Context(), deviceID, args)
+	if err != nil {
+		h.logger.Error(fmt.Sprintf("failed to get uploads by device: %v", err))
+		responses.WriteError(w, "failed to get uploads", http.StatusInternalServerError)
+		return
+	}
+
+	responses.WriteJSON(w, result, http.StatusOK)
 }
 
 func (h *Handler) GetLatest(w http.ResponseWriter, r *http.Request) {

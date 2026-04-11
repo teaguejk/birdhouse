@@ -139,6 +139,59 @@ func (r *PostgreSQLRepository) HardDeleteByResource(ctx context.Context, resourc
 	})
 }
 
+func (r *PostgreSQLRepository) GetByDevice(ctx context.Context, deviceID string, page, limit int) ([]models.File, int, error) {
+	var files []models.File
+	var total int
+	offset := (page - 1) * limit
+
+	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
+		countQuery := `SELECT COUNT(*) FROM uploads WHERE device_id = $1 AND status != $2`
+		if err := tx.QueryRow(ctx, countQuery, deviceID, ImageStatusDeleted).Scan(&total); err != nil {
+			return err
+		}
+
+		query := `
+			SELECT id, device_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
+			FROM uploads
+			WHERE device_id = $1 AND status != $2
+			ORDER BY created_at DESC
+			LIMIT $3 OFFSET $4
+		`
+
+		rows, err := tx.Query(ctx, query, deviceID, ImageStatusDeleted, limit, offset)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var f models.File
+			var dbID int
+			var dbDeviceID *int
+
+			if err := rows.Scan(&dbID, &dbDeviceID, &f.ResourceType, &f.ResourceID,
+				&f.Status, &f.Filename, &f.OriginalName, &f.MimeType, &f.Size,
+				&f.URL, &f.SortOrder, &f.ExpiresAt, &f.CreatedAt, &f.UpdatedAt); err != nil {
+				return err
+			}
+
+			f.ID = fmt.Sprintf("%d", dbID)
+			if dbDeviceID != nil {
+				f.DeviceID = fmt.Sprintf("%d", *dbDeviceID)
+			}
+			files = append(files, f)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return files, total, nil
+}
+
 func (r *PostgreSQLRepository) DeleteByResource(ctx context.Context, resourceType, resourceID string) error {
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `

@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"api/internal/shared/models"
+	"api/pkg/pagination"
 	"context"
 	"io"
 	"net/http"
@@ -14,6 +15,7 @@ type UploadRepository interface {
 	Create(ctx context.Context, image *models.File) error
 	Delete(ctx context.Context, id string) error
 	GetByResource(ctx context.Context, resourceType, resourceID string, assignedOnly bool) ([]models.File, error)
+	GetByDevice(ctx context.Context, deviceID string, page, limit int) ([]models.File, int, error)
 	GetByID(ctx context.Context, id string) (*models.File, error)
 	GetByFilename(ctx context.Context, filename string) (*models.File, error)
 	GetLatest(ctx context.Context) (*models.File, error)
@@ -29,6 +31,7 @@ type UploadService interface {
 	DeleteByResource(ctx context.Context, deviceID, resourceType, resourceID string) error
 	DeleteByFilename(ctx context.Context, deviceID, filename string) error
 	GetByResource(ctx context.Context, resourceType, resourceID string, assignedOnly bool) ([]models.File, error)
+	GetByDevice(ctx context.Context, deviceID string, args *pagination.Args) (*pagination.Response, error)
 	GetByID(ctx context.Context, id string) (*models.File, error)
 	GetByFilename(ctx context.Context, filename string) (*models.File, error)
 	GetLatest(ctx context.Context) (*models.File, error)
@@ -46,6 +49,7 @@ type UploadHandler interface {
 	Complete(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request)
 	GetByResource(w http.ResponseWriter, r *http.Request)
+	GetByDevice(w http.ResponseWriter, r *http.Request)
 	GetLatest(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 }
