@@ -331,6 +331,65 @@ func (r *PostgreSQLRepository) GetByFilename(ctx context.Context, filename strin
 	return &image, nil
 }
 
+func (r *PostgreSQLRepository) GetLatest(ctx context.Context) (*models.File, error) {
+	var image models.File
+	var dbID int
+	var dbDeviceID *int
+
+	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
+		query := `
+			SELECT id, device_id, resource_type, resource_id, status, filename, original_name, mime_type, size, url, sort_order, expires_at, created_at, updated_at
+			FROM uploads
+			WHERE status = $1
+			ORDER BY created_at DESC
+			LIMIT 1
+		`
+
+		err := tx.QueryRow(ctx, query, ImageStatusComplete).Scan(
+			&dbID,
+			&dbDeviceID,
+			&image.ResourceType,
+			&image.ResourceID,
+			&image.Status,
+			&image.Filename,
+			&image.OriginalName,
+			&image.MimeType,
+			&image.Size,
+			&image.URL,
+			&image.SortOrder,
+			&image.ExpiresAt,
+			&image.CreatedAt,
+			&image.UpdatedAt,
+		)
+
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				return nil
+			}
+			return err
+		}
+
+		image.ID = fmt.Sprintf("%d", dbID)
+		if dbDeviceID == nil {
+			image.DeviceID = ""
+		} else {
+			image.DeviceID = fmt.Sprintf("%d", *dbDeviceID)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if image.ID == "" {
+		return nil, nil
+	}
+
+	return &image, nil
+}
+
 func (r *PostgreSQLRepository) GetExpiredPending(ctx context.Context) ([]models.File, error) {
 	var images []models.File
 

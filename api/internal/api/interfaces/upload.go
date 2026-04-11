@@ -16,6 +16,7 @@ type UploadRepository interface {
 	GetByResource(ctx context.Context, resourceType, resourceID string, assignedOnly bool) ([]models.File, error)
 	GetByID(ctx context.Context, id string) (*models.File, error)
 	GetByFilename(ctx context.Context, filename string) (*models.File, error)
+	GetLatest(ctx context.Context) (*models.File, error)
 	GetExpiredPending(ctx context.Context) ([]models.File, error)
 }
 
@@ -30,6 +31,7 @@ type UploadService interface {
 	GetByResource(ctx context.Context, resourceType, resourceID string, assignedOnly bool) ([]models.File, error)
 	GetByID(ctx context.Context, id string) (*models.File, error)
 	GetByFilename(ctx context.Context, filename string) (*models.File, error)
+	GetLatest(ctx context.Context) (*models.File, error)
 	GetExpiredPending(ctx context.Context) ([]models.File, error)
 
 	// storage
@@ -44,5 +46,6 @@ type UploadHandler interface {
 	Complete(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request)
 	GetByResource(w http.ResponseWriter, r *http.Request)
+	GetLatest(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 }

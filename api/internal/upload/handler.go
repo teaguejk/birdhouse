@@ -37,6 +37,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /init", h.GenerateUploadURL)
 	mux.HandleFunc("POST /complete", h.Complete)
 
+	mux.HandleFunc("GET /latest", h.GetLatest)
 	mux.HandleFunc("GET /meta/{id}", h.Get)
 	mux.HandleFunc("GET /meta/{resource_type}/{resource_id}", h.GetByResource)
 
@@ -51,6 +52,22 @@ func (h *Handler) Initialize(ctx context.Context) error {
 func (h *Handler) Shutdown(ctx context.Context) error {
 	h.logger.Info(fmt.Sprintf("shutting down: %s", h.Name()))
 	return nil
+}
+
+func (h *Handler) GetLatest(w http.ResponseWriter, r *http.Request) {
+	image, err := h.service.GetLatest(r.Context())
+	if err != nil {
+		h.logger.Error(fmt.Sprintf("failed to get latest image: %v", err))
+		responses.WriteError(w, "failed to get latest image", http.StatusInternalServerError)
+		return
+	}
+
+	if image == nil {
+		responses.WriteError(w, "no images found", http.StatusNotFound)
+		return
+	}
+
+	responses.WriteJSON(w, image, http.StatusOK)
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {

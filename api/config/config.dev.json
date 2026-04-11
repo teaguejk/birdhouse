@@ -12,7 +12,9 @@
       "max_age": 86400
     },
     "public_routes": [
-      "GET /health/healthcheck"
+      "GET /health/healthcheck",
+      "GET /uploads/latest",
+      "GET /uploads/:id"
     ]
   },
   "storage": {

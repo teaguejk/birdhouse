@@ -173,6 +173,19 @@ func (s *Service) GetByFilename(ctx context.Context, filename string) (*models.F
 	return image, nil
 }
 
+func (s *Service) GetLatest(ctx context.Context) (*models.File, error) {
+	image, err := s.repo.GetLatest(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if image != nil {
+		image.URL = s.storage.GetURL(image.Filename)
+	}
+
+	return image, nil
+}
+
 func (s *Service) GetExpiredPending(ctx context.Context) ([]models.File, error) {
 	images, err := s.repo.GetExpiredPending(ctx)
 	if err != nil {
