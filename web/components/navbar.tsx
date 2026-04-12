@@ -15,7 +15,7 @@ export function Navbar() {
         Birdhouse
       </Link>
       <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-        Feed
+        Home
       </Link>
       {user?.isAdmin && (
         <Link href="/admin" className="text-sm text-muted-foreground hover:text-foreground">
