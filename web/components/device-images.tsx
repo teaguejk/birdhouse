@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -89,7 +90,7 @@ export function DeviceImages({ deviceId }: DeviceImagesProps) {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {images.map((upload) => (
+              {images.map((upload, index) => (
                 <a
                   key={upload.id}
                   href={upload.url}
@@ -97,6 +98,9 @@ export function DeviceImages({ deviceId }: DeviceImagesProps) {
                   rel="noopener noreferrer"
                   className="group relative overflow-hidden rounded-md border bg-muted"
                 >
+                  {index === 0 && page === 1 && (
+                    <Badge className="absolute top-2 left-2 z-10">Latest</Badge>
+                  )}
                   <img
                     src={upload.url}
                     alt={upload.original_name}
