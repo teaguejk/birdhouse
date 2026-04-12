@@ -6,7 +6,14 @@ import (
 )
 
 func (s *Server) setupMiddleware(handler http.Handler) http.Handler {
-	h := middleware.AuthMiddleware(s.services.Device, s.env.Config.PublicRoutes)(handler)
+	h := middleware.AuthMiddleware(&middleware.AuthConfig{
+		DeviceService:  s.services.Device,
+		AdminService:   s.services.Admin,
+		OAuthVerifier: s.env.OAuthVerifier,
+		PublicRoutes:   s.env.Config.PublicRoutes,
+		AuthRoutes:     s.env.Config.AuthRoutes,
+		AdminRoutes:    s.env.Config.AdminRoutes,
+	})(handler)
 	h = middleware.CorsMiddleware(s.env.Config.CORS, h)
 	h = middleware.LoggingMiddleware(s.env.Logger, h)
 	h = middleware.RecoveryMiddleware(s.env.Logger, h)

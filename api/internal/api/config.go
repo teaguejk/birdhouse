@@ -4,6 +4,7 @@ import (
 	"api/pkg/ai"
 	"api/pkg/config"
 	"api/pkg/database"
+	"api/pkg/oauth"
 	"api/pkg/storage"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,7 @@ type Config struct {
 	Storage  *storage.Config  `json:"storage"`
 	Database *database.Config `json:"database"`
 	AI       *ai.Config       `json:"ai"`
+	OAuth    *oauth.Config    `json:"oauth"`
 }
 
 type ServerConfig struct {
@@ -26,6 +28,8 @@ type ServerConfig struct {
 	RateLimitEnabled bool            `json:"rate_limit_enabled"`
 	CORS             *CORSConfig     `json:"cors"`
 	PublicRoutes     []string        `json:"public_routes"`
+	AuthRoutes       []string        `json:"auth_routes"`
+	AdminRoutes      []string        `json:"admin_routes"`
 }
 
 type CORSConfig struct {
@@ -81,12 +85,24 @@ func validate(cfg *Config) error {
 		return fmt.Errorf("ai.type is required")
 	}
 
+	if cfg.OAuth == nil {
+		return fmt.Errorf("oauth config is required")
+	}
+	if cfg.OAuth.Type == "" {
+		return fmt.Errorf("oauth.type is required")
+	}
+
 	return nil
 }
 
 func applyEnvOverrides(cfg *Config) {
 	if v := os.Getenv("PORT"); v != "" {
 		cfg.Server.Port = v
+	}
+	if cfg.OAuth != nil {
+		if v := os.Getenv("OAUTH_AUDIENCE"); v != "" {
+			cfg.OAuth.Audience = v
+		}
 	}
 	if cfg.Database != nil {
 		if v := os.Getenv("DB_PASSWORD"); v != "" {

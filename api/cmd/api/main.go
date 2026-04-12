@@ -14,6 +14,7 @@ import (
 	"api/pkg/ai"
 	"api/pkg/database"
 	"api/pkg/logging"
+	"api/pkg/oauth"
 	"api/pkg/storage"
 )
 
@@ -51,9 +52,15 @@ func main() {
 		logger.Warn("ai was not configured, ai features will be unavailable")
 	}
 
+	oauthVerifier, err := oauth.NewVerifier(cfg.OAuth)
+	if err != nil {
+		log.Fatalf("failed to initialize oauth verifier: %v", err)
+	}
+
 	sEnv := &api.ServerEnv{
-		Logger: logger,
-		Config: cfg.Server,
+		Logger:        logger,
+		Config:        cfg.Server,
+		OAuthVerifier: oauthVerifier,
 	}
 
 	repos := api.InitRepositories(db)
@@ -61,6 +68,7 @@ func main() {
 	handlers := api.InitHandlers(services, logger, db)
 
 	srv := server.New(sEnv, services)
+	srv.RegisterHandler(handlers.Auth)
 	srv.RegisterHandler(handlers.Device)
 	srv.RegisterHandler(handlers.Health)
 	srv.RegisterHandler(handlers.Upload)

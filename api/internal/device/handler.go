@@ -32,6 +32,7 @@ func (h *Handler) Name() string {
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /", h.Create)
 	mux.HandleFunc("GET /", h.List)
+	mux.HandleFunc("GET /status", h.Status)
 	mux.HandleFunc("GET /{id}", h.Get)
 	mux.HandleFunc("PUT /{id}", h.Update)
 	mux.HandleFunc("DELETE /{id}", h.Delete)
@@ -68,6 +69,17 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.WriteJSON(w, resp, http.StatusCreated)
+}
+
+func (h *Handler) Status(w http.ResponseWriter, r *http.Request) {
+	statuses, err := h.service.ListStatus(r.Context())
+	if err != nil {
+		h.logger.Error(fmt.Sprintf("failed to list device status: %v", err))
+		responses.WriteError(w, "failed to list device status", http.StatusInternalServerError)
+		return
+	}
+
+	responses.WriteJSON(w, statuses, http.StatusOK)
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {

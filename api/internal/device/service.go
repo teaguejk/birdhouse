@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"time"
 )
 
 type Service struct {
@@ -67,11 +68,33 @@ func (s *Service) Authenticate(ctx context.Context, apiKey string) (*models.Devi
 		return nil, fmt.Errorf("device is inactive")
 	}
 
+	// update last seen (fire and forget — don't block auth on this)
+	go func() {
+		if err := s.repo.TouchLastSeen(context.Background(), device.ID); err != nil {
+			s.logger.Error(fmt.Sprintf("failed to touch last_seen_at: %v", err))
+		}
+	}()
+
 	return device, nil
 }
 
 func (s *Service) List(ctx context.Context) ([]models.Device, error) {
 	return s.repo.List(ctx)
+}
+
+func (s *Service) ListStatus(ctx context.Context) ([]models.DeviceStatus, error) {
+	statuses, err := s.repo.ListStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, s := range statuses {
+		if s.Active && s.LastSeenAt != nil {
+			statuses[i].Online = time.Since(*s.LastSeenAt) < 5*time.Minute
+		}
+	}
+
+	return statuses, nil
 }
 
 func (s *Service) Update(ctx context.Context, id string, req *models.UpdateDeviceRequest) (*models.Device, error) {

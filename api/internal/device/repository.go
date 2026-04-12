@@ -44,7 +44,7 @@ func (r *PostgreSQLRepository) GetByID(ctx context.Context, id string) (*models.
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			SELECT id, name, api_key_hash, location, active, created_at, updated_at
+			SELECT id, name, api_key_hash, location, active, last_seen_at, created_at, updated_at
 			FROM devices
 			WHERE id = $1
 		`
@@ -54,6 +54,7 @@ func (r *PostgreSQLRepository) GetByID(ctx context.Context, id string) (*models.
 			&device.APIKeyHash,
 			&device.Location,
 			&device.Active,
+			&device.LastSeenAt,
 			&device.CreatedAt,
 			&device.UpdatedAt,
 		)
@@ -76,7 +77,7 @@ func (r *PostgreSQLRepository) GetByAPIKeyHash(ctx context.Context, hash string)
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			SELECT id, name, api_key_hash, location, active, created_at, updated_at
+			SELECT id, name, api_key_hash, location, active, last_seen_at, created_at, updated_at
 			FROM devices
 			WHERE api_key_hash = $1
 		`
@@ -86,6 +87,7 @@ func (r *PostgreSQLRepository) GetByAPIKeyHash(ctx context.Context, hash string)
 			&device.APIKeyHash,
 			&device.Location,
 			&device.Active,
+			&device.LastSeenAt,
 			&device.CreatedAt,
 			&device.UpdatedAt,
 		)
@@ -107,7 +109,7 @@ func (r *PostgreSQLRepository) List(ctx context.Context) ([]models.Device, error
 
 	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		query := `
-			SELECT id, name, api_key_hash, location, active, created_at, updated_at
+			SELECT id, name, api_key_hash, location, active, last_seen_at, created_at, updated_at
 			FROM devices
 			ORDER BY created_at DESC
 		`
@@ -120,7 +122,7 @@ func (r *PostgreSQLRepository) List(ctx context.Context) ([]models.Device, error
 		for rows.Next() {
 			var d models.Device
 			var dbID int
-			if err := rows.Scan(&dbID, &d.Name, &d.APIKeyHash, &d.Location, &d.Active, &d.CreatedAt, &d.UpdatedAt); err != nil {
+			if err := rows.Scan(&dbID, &d.Name, &d.APIKeyHash, &d.Location, &d.Active, &d.LastSeenAt, &d.CreatedAt, &d.UpdatedAt); err != nil {
 				return err
 			}
 			d.ID = fmt.Sprintf("%d", dbID)
@@ -152,6 +154,48 @@ func (r *PostgreSQLRepository) Update(ctx context.Context, device *models.Device
 			device.ID,
 		).Scan(&device.UpdatedAt)
 	})
+}
+
+func (r *PostgreSQLRepository) TouchLastSeen(ctx context.Context, id string) error {
+	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
+		query := `UPDATE devices SET last_seen_at = CURRENT_TIMESTAMP WHERE id = $1`
+		_, err := tx.Exec(ctx, query, id)
+		return err
+	})
+}
+
+func (r *PostgreSQLRepository) ListStatus(ctx context.Context) ([]models.DeviceStatus, error) {
+	var statuses []models.DeviceStatus
+
+	err := r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
+		query := `
+			SELECT id, name, location, active, last_seen_at
+			FROM devices
+			ORDER BY name ASC
+		`
+		rows, err := tx.Query(ctx, query)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var s models.DeviceStatus
+			var dbID int
+			if err := rows.Scan(&dbID, &s.Name, &s.Location, &s.Active, &s.LastSeenAt); err != nil {
+				return err
+			}
+			s.ID = fmt.Sprintf("%d", dbID)
+			statuses = append(statuses, s)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return statuses, nil
 }
 
 func (r *PostgreSQLRepository) Delete(ctx context.Context, id string) error {
