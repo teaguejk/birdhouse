@@ -42,7 +42,7 @@ export function Navbar() {
             }}
             onError={() => console.error("Google login failed")}
             size="medium"
-            theme="outline"
+            theme="filled_black"
           />
         )}
       </div>
