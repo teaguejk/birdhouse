@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export function Navbar() {
   const { user, login, logout, isLoading } = useAuth();
@@ -21,14 +22,17 @@ export function Navbar() {
           Admin
         </Link>
       )}
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex items-center gap-3">
         {isLoading ? null : user ? (
-          <>
-            <span className="text-sm text-muted-foreground">{user.name || user.email}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm leading-none text-muted-foreground">{user.name || user.email}</span>
+              {user.isAdmin && <Badge variant="secondary" className="leading-none">Admin</Badge>}
+            </div>
             <Button variant="outline" size="sm" onClick={logout}>
               Logout
             </Button>
-          </>
+          </div>
         ) : (
           <GoogleLogin
             onSuccess={(response) => {

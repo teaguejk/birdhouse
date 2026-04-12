@@ -9,7 +9,6 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col items-center gap-8 p-8 pt-16">
-      <h1 className="text-3xl font-bold">Birdhouse Feed</h1>
       <DeviceStatusPanel
         selectedDeviceId={selectedDeviceId}
         onSelectDevice={setSelectedDeviceId}
