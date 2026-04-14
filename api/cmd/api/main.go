@@ -37,7 +37,7 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	db, err := database.NewDatabase(ctx, cfg.Database)
+	db, err := database.NewDatabase(ctx, cfg.Database, logger.WithField("component", "database"))
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
@@ -114,7 +114,7 @@ func main() {
 		log.Fatalf("server failed to shutdown: %v", err)
 	}
 
-	db.Close(ctx)
+	db.Close()
 
 	logger.Info("successfully shutdown")
 }

@@ -11,7 +11,7 @@ import (
 
 type Database interface {
 	Ping(ctx context.Context) error
-	Close(ctx context.Context)
+	Close()
 	GetDB() interface{}
 }
 

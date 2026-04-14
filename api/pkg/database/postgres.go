@@ -33,12 +33,12 @@ type PostgresOptions struct {
 }
 
 type PostgresDB struct {
-	Pool *pgxpool.Pool
+	Pool   *pgxpool.Pool
+	logger *logging.Logger
 }
 
-func (db *PostgresDB) Close(ctx context.Context) {
-	logger := logging.FromContext(ctx)
-	logger.Info("closing postgres connection pool.")
+func (db *PostgresDB) Close() {
+	db.logger.Info("closing postgres connection pool")
 	db.Pool.Close()
 }
 
@@ -50,7 +50,7 @@ func (db *PostgresDB) GetDB() interface{} {
 	return db.Pool
 }
 
-func NewPostgresDB(ctx context.Context, opts *PostgresOptions) (*PostgresDB, error) {
+func NewPostgresDB(ctx context.Context, opts *PostgresOptions, logger *logging.Logger) (*PostgresDB, error) {
 	pgxConfig, err := pgxpool.ParseConfig(pgDSN(opts))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse connection string: %w", err)
@@ -65,7 +65,7 @@ func NewPostgresDB(ctx context.Context, opts *PostgresOptions) (*PostgresDB, err
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
-	return &PostgresDB{Pool: pool}, nil
+	return &PostgresDB{Pool: pool, logger: logger}, nil
 }
 
 func pgDSN(opts *PostgresOptions) string {
