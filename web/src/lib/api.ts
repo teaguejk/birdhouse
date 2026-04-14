@@ -44,7 +44,12 @@ export async function createDevice(token: string, data: { name: string; location
   });
 }
 
-export async function updateDevice(token: string, id: string, data: { name?: string; location?: string; active?: boolean }) {
+export async function updateDevice(token: string, id: string, data: {
+  name?: string;
+  location?: string;
+  active?: boolean;
+  config?: { min_contour_area: number; threshold: number; cooldown_seconds: number };
+}) {
   return fetchAPI(`/devices/${id}`, {
     method: "PUT",
     headers: authHeaders(token),
@@ -63,6 +68,20 @@ export async function rotateDeviceKey(token: string, id: string) {
   return fetchAPI(`/devices/${id}/rotate-key`, {
     method: "POST",
     headers: authHeaders(token),
+  });
+}
+
+// device status (public)
+export async function getDeviceStatuses() {
+  return fetchAPI("/devices/status");
+}
+
+// commands
+export async function sendCommand(token: string, deviceId: string, action: string, payload?: Record<string, unknown>) {
+  return fetchAPI(`/commands/device/${deviceId}`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ action, payload }),
   });
 }
 

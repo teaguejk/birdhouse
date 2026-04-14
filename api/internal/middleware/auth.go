@@ -48,25 +48,8 @@ func AuthMiddleware(cfg *AuthConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			// 3. admin routes — valid oauth token + admin check
-			if matchesRoute(routeKey, adminExact, adminPrefix) {
-				claims, ok := verifyOAuthToken(r, cfg.OAuthVerifier, w)
-				if !ok {
-					return
-				}
-
-				_, err := cfg.AdminService.ValidateAdmin(r.Context(), claims.Email)
-				if err != nil {
-					responses.WriteError(w, "forbidden", http.StatusForbidden)
-					return
-				}
-
-				ctx := context.WithValue(r.Context(), constants.OAuthClaimsKey, claims)
-				next.ServeHTTP(w, r.WithContext(ctx))
-				return
-			}
-
-			// 4. device lenient routes — api key auth, allows inactive devices
+			// 3. device lenient routes — api key auth, allows inactive devices
+			// checked before admin so exact matches here win over admin wildcards
 			if matchesRoute(routeKey, lenientExact, lenientPrefix) {
 				apiKey := r.Header.Get("x-api-key")
 				if apiKey == "" {
@@ -82,6 +65,24 @@ func AuthMiddleware(cfg *AuthConfig) func(http.Handler) http.Handler {
 
 				ctx := context.WithValue(r.Context(), constants.DeviceIDKey, device.ID)
 				ctx = context.WithValue(ctx, constants.DeviceActiveKey, device.Active)
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+
+			// 4. admin routes — valid oauth token + admin check
+			if matchesRoute(routeKey, adminExact, adminPrefix) {
+				claims, ok := verifyOAuthToken(r, cfg.OAuthVerifier, w)
+				if !ok {
+					return
+				}
+
+				_, err := cfg.AdminService.ValidateAdmin(r.Context(), claims.Email)
+				if err != nil {
+					responses.WriteError(w, "forbidden", http.StatusForbidden)
+					return
+				}
+
+				ctx := context.WithValue(r.Context(), constants.OAuthClaimsKey, claims)
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}

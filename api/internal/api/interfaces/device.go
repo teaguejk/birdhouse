@@ -13,6 +13,7 @@ type DeviceRepository interface {
 	List(ctx context.Context) ([]models.Device, error)
 	ListStatus(ctx context.Context) ([]models.DeviceStatus, error)
 	TouchLastSeen(ctx context.Context, id string) error
+	UpdateStatus(ctx context.Context, id string, status []byte) error
 	Update(ctx context.Context, device *models.Device) error
 	Delete(ctx context.Context, id string) error
 }
@@ -33,6 +34,7 @@ type DeviceHandler interface {
 	Handler
 	Create(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request)
+	GetConfig(w http.ResponseWriter, r *http.Request)
 	List(w http.ResponseWriter, r *http.Request)
 	Status(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)

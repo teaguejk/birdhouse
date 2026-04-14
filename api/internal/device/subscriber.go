@@ -36,7 +36,7 @@ func (s *StatusSubscriber) handleStatus(_ pahomqtt.Client, msg pahomqtt.Message)
 	}
 	deviceID := parts[1]
 
-	if err := s.repo.TouchLastSeen(context.Background(), deviceID); err != nil {
-		s.logger.Error(fmt.Sprintf("failed to update last_seen for device %s: %v", deviceID, err))
+	if err := s.repo.UpdateStatus(context.Background(), deviceID, msg.Payload()); err != nil {
+		s.logger.Error(fmt.Sprintf("failed to update status for device %s: %v", deviceID, err))
 	}
 }

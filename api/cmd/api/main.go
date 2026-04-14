@@ -63,7 +63,7 @@ func main() {
 	publisher, mqttClient := mqtt.NewFromConfig(cfg.MQTT, logger.WithField("component", "mqtt"))
 
 	sEnv := &api.ServerEnv{
-		Logger:        logger,
+		Logger:        logger.WithField("component", "server"),
 		Config:        cfg.Server,
 		OAuthVerifier: oauthVerifier,
 	}

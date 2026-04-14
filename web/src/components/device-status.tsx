@@ -6,6 +6,13 @@ import { cn } from "@/lib/utils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8090";
 
+interface DeviceLastStatus {
+  detecting?: boolean;
+  uptime_seconds?: number;
+  captures?: number;
+  uploads?: { success: number; failed: number };
+}
+
 interface DeviceStatus {
   id: string;
   name: string;
@@ -13,6 +20,7 @@ interface DeviceStatus {
   active: boolean;
   online: boolean;
   last_seen_at: string | null;
+  last_status: DeviceLastStatus | null;
 }
 
 function timeAgo(dateStr: string): string {
@@ -86,9 +94,21 @@ export function DeviceStatusPanel({ selectedDeviceId, onSelectDevice }: DeviceSt
           >
             <div>
               <p className="font-medium">{device.name}</p>
-              {device.location && (
-                <p className="text-xs text-muted-foreground">{device.location}</p>
-              )}
+              <div className="flex items-center gap-2">
+                {device.location && (
+                  <span className="text-xs text-muted-foreground">{device.location}</span>
+                )}
+                {device.online && device.last_status?.detecting != null && (
+                  <span className="text-xs text-muted-foreground">
+                    {device.last_status.detecting ? "Detecting" : "Paused"}
+                  </span>
+                )}
+                {device.online && device.last_status?.captures != null && (
+                  <span className="text-xs text-muted-foreground">
+                    {device.last_status.captures} captures
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {device.last_seen_at && (

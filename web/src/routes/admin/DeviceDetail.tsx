@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { getDevice, updateDevice, deleteDevice, rotateDeviceKey } from "@/lib/api";
+import { getDevice, getDeviceStatuses, updateDevice, deleteDevice, rotateDeviceKey, sendCommand } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,11 +29,25 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+interface DeviceLastStatus {
+  detecting?: boolean;
+  uptime_seconds?: number;
+  captures?: number;
+  uploads?: { success: number; failed: number };
+}
+
+interface DeviceConfig {
+  min_contour_area: number;
+  threshold: number;
+  cooldown_seconds: number;
+}
+
 interface Device {
   id: string;
   name: string;
   location: string;
   active: boolean;
+  config: DeviceConfig;
   created_at: string;
   updated_at: string;
 }
@@ -50,8 +65,12 @@ export default function DeviceDetail() {
   const [location, setLocation] = useState("");
   const [active, setActive] = useState(true);
 
+  const [deviceStatus, setDeviceStatus] = useState<DeviceLastStatus | null>(null);
+  const [online, setOnline] = useState(false);
+
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!token || !id) return;
@@ -65,6 +84,24 @@ export default function DeviceDetail() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [token, id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchStatus = () =>
+      getDeviceStatuses()
+        .then((statuses: { id: string; online: boolean; last_status: DeviceLastStatus | null }[]) => {
+          const match = statuses?.find((s: { id: string }) => s.id === id);
+          if (match) {
+            setOnline(match.online);
+            setDeviceStatus(match.last_status);
+          }
+        })
+        .catch(console.error);
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 15000);
+    return () => clearInterval(interval);
+  }, [id]);
 
   const handleSave = async () => {
     if (!token || !id) return;
@@ -96,6 +133,18 @@ export default function DeviceDetail() {
       setNewKey(result.api_key);
     } catch (err) {
       console.error("Failed to rotate key:", err);
+    }
+  };
+
+  const handleCommand = async (action: string, payload?: Record<string, unknown>) => {
+    if (!token || !id) return;
+    setSending(true);
+    try {
+      await sendCommand(token, id, action, payload);
+    } catch (err) {
+      console.error("Failed to send command:", err);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -149,6 +198,134 @@ export default function DeviceDetail() {
           <Button onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save Changes"}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Controls</CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant={online ? "default" : "secondary"}>
+                {online ? "Online" : "Offline"}
+              </Badge>
+              {online && deviceStatus?.detecting != null && (
+                <Badge variant={deviceStatus.detecting ? "default" : "outline"}>
+                  {deviceStatus.detecting ? "Detecting" : "Paused"}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {online && deviceStatus && (
+            <div className="grid grid-cols-3 gap-4 rounded-md bg-muted p-3 text-center text-sm">
+              <div>
+                <p className="text-muted-foreground">Captures</p>
+                <p className="font-medium">{deviceStatus.captures ?? 0}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Uploads</p>
+                <p className="font-medium">{deviceStatus.uploads?.success ?? 0}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Failed</p>
+                <p className="font-medium">{deviceStatus.uploads?.failed ?? 0}</p>
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => handleCommand("start_detection")}
+              disabled={sending}
+            >
+              Start Detection
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleCommand("stop_detection")}
+              disabled={sending}
+            >
+              Stop Detection
+            </Button>
+            <Button
+              onClick={() => handleCommand("capture")}
+              disabled={sending}
+            >
+              Capture Now
+            </Button>
+          </div>
+          <Separator />
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Motion Settings</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="contour">Min Contour Area</Label>
+                <Input
+                  id="contour"
+                  type="number"
+                  key={`contour-${device.config?.min_contour_area}`}
+                  defaultValue={device.config?.min_contour_area ?? 500}
+                  min={100}
+                  step={100}
+                  onBlur={async (e) => {
+                    const val = Number(e.target.value);
+                    try {
+                      const updated = await updateDevice(token!, id!, {
+                        config: { ...device.config, min_contour_area: val },
+                      } as any);
+                      setDevice(updated);
+                    } catch (err) { console.error(err); }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="threshold">Motion Threshold</Label>
+                <Input
+                  id="threshold"
+                  type="number"
+                  key={`threshold-${device.config?.threshold}`}
+                  defaultValue={device.config?.threshold ?? 25}
+                  min={1}
+                  max={255}
+                  onBlur={async (e) => {
+                    const val = Number(e.target.value);
+                    try {
+                      const updated = await updateDevice(token!, id!, {
+                        config: { ...device.config, threshold: val },
+                      } as any);
+                      setDevice(updated);
+                    } catch (err) { console.error(err); }
+                  }}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cooldown">Cooldown (seconds)</Label>
+              <Input
+                id="cooldown"
+                type="number"
+                key={`cooldown-${device.config?.cooldown_seconds}`}
+                defaultValue={device.config?.cooldown_seconds ?? 2}
+                min={0}
+                step={0.5}
+                className="w-1/2"
+                onBlur={async (e) => {
+                  const val = Number(e.target.value);
+                  try {
+                    const updated = await updateDevice(token!, id!, {
+                      config: { ...device.config, cooldown_seconds: val },
+                    } as any);
+                    setDevice(updated);
+                  } catch (err) { console.error(err); }
+                }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Changes are saved to the device and pushed immediately.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

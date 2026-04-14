@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -128,16 +129,34 @@ func (s *Service) Update(ctx context.Context, id string, req *models.UpdateDevic
 	if req.Active != nil {
 		device.Active = *req.Active
 	}
+	if req.Config != nil {
+		configJSON, err := json.Marshal(req.Config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal config: %w", err)
+		}
+		device.Config = configJSON
+	}
 
 	if err := s.repo.Update(ctx, device); err != nil {
 		return nil, fmt.Errorf("failed to update device: %w", err)
 	}
 
-	// publish active flag change to MQTT, retained
+	// publish active flag change to MQTT
 	if req.Active != nil {
 		topic := fmt.Sprintf("birdhouse/%s/active", device.ID)
 		if err := s.publisher.Publish(topic, 1, true, map[string]bool{"active": device.Active}); err != nil {
 			s.logger.Error(fmt.Sprintf("failed to publish active flag to mqtt: %v", err))
+		}
+	}
+
+	// publish config change to device via MQTT
+	if req.Config != nil {
+		topic := fmt.Sprintf("birdhouse/%s/commands", device.ID)
+		if err := s.publisher.Publish(topic, 1, false, map[string]any{
+			"action":  "update_config",
+			"payload": req.Config,
+		}); err != nil {
+			s.logger.Error(fmt.Sprintf("failed to publish config update to mqtt: %v", err))
 		}
 	}
 

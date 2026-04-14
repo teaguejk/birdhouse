@@ -27,7 +27,8 @@
       "POST /commands/device/*"
     ],
     "device_lenient_routes": [
-      "GET /commands/pending"
+      "GET /commands/pending",
+      "GET /devices/config"
     ]
   },
   "oauth": {

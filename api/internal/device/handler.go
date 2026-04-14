@@ -2,6 +2,7 @@ package device
 
 import (
 	"api/internal/api/interfaces"
+	"api/internal/shared/constants"
 	"api/internal/shared/models"
 	"api/internal/shared/responses"
 	"api/pkg/logging"
@@ -33,6 +34,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /", h.Create)
 	mux.HandleFunc("GET /", h.List)
 	mux.HandleFunc("GET /status", h.Status)
+	mux.HandleFunc("GET /config", h.GetConfig)
 	mux.HandleFunc("GET /{id}", h.Get)
 	mux.HandleFunc("PUT /{id}", h.Update)
 	mux.HandleFunc("DELETE /{id}", h.Delete)
@@ -80,6 +82,24 @@ func (h *Handler) Status(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.WriteJSON(w, statuses, http.StatusOK)
+}
+
+// GetConfig returns the config for the authenticated device (API key auth).
+func (h *Handler) GetConfig(w http.ResponseWriter, r *http.Request) {
+	deviceID, ok := r.Context().Value(constants.DeviceIDKey).(string)
+	if !ok || deviceID == "" {
+		responses.WriteError(w, "device not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	device, err := h.service.GetByID(r.Context(), deviceID)
+	if err != nil {
+		h.logger.Error(fmt.Sprintf("failed to get device config: %v", err))
+		responses.WriteError(w, "device not found", http.StatusNotFound)
+		return
+	}
+
+	responses.WriteJSON(w, device.Config, http.StatusOK)
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
