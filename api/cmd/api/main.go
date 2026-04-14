@@ -114,5 +114,7 @@ func main() {
 		log.Fatalf("server failed to shutdown: %v", err)
 	}
 
+	db.Close(ctx)
+
 	logger.Info("successfully shutdown")
 }
