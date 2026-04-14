@@ -69,6 +69,7 @@ func main() {
 
 	srv := server.New(sEnv, services)
 	srv.RegisterHandler(handlers.Auth)
+	srv.RegisterHandler(handlers.Command)
 	srv.RegisterHandler(handlers.Device)
 	srv.RegisterHandler(handlers.Health)
 	srv.RegisterHandler(handlers.Upload)

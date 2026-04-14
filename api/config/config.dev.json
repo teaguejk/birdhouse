@@ -23,7 +23,8 @@
       "GET /devices/*",
       "POST /devices/*",
       "PUT /devices/*",
-      "DELETE /devices/*"
+      "DELETE /devices/*",
+      "POST /commands/device/*"
     ],
   },
   "oauth": {

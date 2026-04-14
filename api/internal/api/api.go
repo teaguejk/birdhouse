@@ -4,6 +4,7 @@ import (
 	"api/internal/admin"
 	"api/internal/api/interfaces"
 	"api/internal/auth"
+	"api/internal/command"
 	"api/internal/device"
 	"api/internal/health"
 	"api/internal/upload"
@@ -14,29 +15,33 @@ import (
 )
 
 type Repositories struct {
-	Admin  interfaces.AdminRepository
-	Device interfaces.DeviceRepository
-	Upload interfaces.UploadRepository
+	Admin   interfaces.AdminRepository
+	Command interfaces.CommandRepository
+	Device  interfaces.DeviceRepository
+	Upload  interfaces.UploadRepository
 }
 
 type Services struct {
-	Admin  interfaces.AdminService
-	Device interfaces.DeviceService
-	Upload interfaces.UploadService
+	Admin   interfaces.AdminService
+	Command interfaces.CommandService
+	Device  interfaces.DeviceService
+	Upload  interfaces.UploadService
 }
 
 type Handlers struct {
-	Auth   interfaces.AuthHandler
-	Device interfaces.DeviceHandler
-	Health interfaces.HealthHandler
-	Upload interfaces.UploadHandler
+	Auth    interfaces.AuthHandler
+	Command interfaces.CommandHandler
+	Device  interfaces.DeviceHandler
+	Health  interfaces.HealthHandler
+	Upload  interfaces.UploadHandler
 }
 
 func InitRepositories(db *database.PostgresDB) *Repositories {
 	return &Repositories{
-		Admin:  admin.NewPostgreSQLRepository(db),
-		Device: device.NewPostgreSQLRepository(db),
-		Upload: upload.NewPostgreSQLRepository(db),
+		Admin:   admin.NewPostgreSQLRepository(db),
+		Command: command.NewPostgreSQLRepository(db),
+		Device:  device.NewPostgreSQLRepository(db),
+		Upload:  upload.NewPostgreSQLRepository(db),
 	}
 }
 
@@ -44,6 +49,7 @@ func InitServices(repos *Repositories, logger *logging.Logger, storage storage.P
 	s := &Services{}
 
 	s.Admin = admin.NewService(logger.WithField("service", "admin"), repos.Admin)
+	s.Command = command.NewService(logger.WithField("service", "command"), repos.Command)
 	s.Device = device.NewService(logger.WithField("service", "device"), repos.Device)
 	s.Upload = upload.NewService(logger.WithField("service", "upload"), repos.Upload, storage)
 
@@ -52,9 +58,10 @@ func InitServices(repos *Repositories, logger *logging.Logger, storage storage.P
 
 func InitHandlers(services *Services, logger *logging.Logger, db database.Database) *Handlers {
 	return &Handlers{
-		Auth:   auth.NewHandler(logger.WithField("handler", "auth"), services.Admin),
-		Device: device.NewHandler(logger.WithField("handler", "device"), services.Device),
-		Health: health.NewHandler(logger.WithField("handler", "health"), db),
-		Upload: upload.NewHandler(logger.WithField("handler", "upload"), services.Upload),
+		Auth:    auth.NewHandler(logger.WithField("handler", "auth"), services.Admin),
+		Command: command.NewHandler(logger.WithField("handler", "command"), services.Command),
+		Device:  device.NewHandler(logger.WithField("handler", "device"), services.Device),
+		Health:  health.NewHandler(logger.WithField("handler", "health"), db),
+		Upload:  upload.NewHandler(logger.WithField("handler", "upload"), services.Upload),
 	}
 }
