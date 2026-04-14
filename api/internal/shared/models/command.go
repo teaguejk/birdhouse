@@ -19,3 +19,8 @@ type CreateCommandRequest struct {
 	Action  string          `json:"action"`
 	Payload json.RawMessage `json:"payload,omitempty"`
 }
+
+type PendingCommandsResponse struct {
+	Commands []Command `json:"commands"`
+	Active   bool      `json:"active"`
+}

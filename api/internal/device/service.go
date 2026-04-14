@@ -4,6 +4,7 @@ import (
 	"api/internal/api/interfaces"
 	"api/internal/shared/models"
 	"api/pkg/logging"
+	"api/pkg/mqtt"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -13,14 +14,16 @@ import (
 )
 
 type Service struct {
-	repo   interfaces.DeviceRepository
-	logger *logging.Logger
+	repo      interfaces.DeviceRepository
+	logger    *logging.Logger
+	publisher mqtt.Publisher
 }
 
-func NewService(logger *logging.Logger, repo interfaces.DeviceRepository) interfaces.DeviceService {
+func NewService(logger *logging.Logger, repo interfaces.DeviceRepository, publisher mqtt.Publisher) interfaces.DeviceService {
 	return &Service{
-		repo:   repo,
-		logger: logger,
+		repo:      repo,
+		logger:    logger,
+		publisher: publisher,
 	}
 }
 
@@ -53,6 +56,23 @@ func (s *Service) GetByID(ctx context.Context, id string) (*models.Device, error
 }
 
 func (s *Service) Authenticate(ctx context.Context, apiKey string) (*models.Device, error) {
+	device, err := s.authenticateKey(ctx, apiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if !device.Active {
+		return nil, fmt.Errorf("device is inactive")
+	}
+
+	return device, nil
+}
+
+func (s *Service) AuthenticateAllowInactive(ctx context.Context, apiKey string) (*models.Device, error) {
+	return s.authenticateKey(ctx, apiKey)
+}
+
+func (s *Service) authenticateKey(ctx context.Context, apiKey string) (*models.Device, error) {
 	hash := hashKey(apiKey)
 
 	device, err := s.repo.GetByAPIKeyHash(ctx, hash)
@@ -64,11 +84,7 @@ func (s *Service) Authenticate(ctx context.Context, apiKey string) (*models.Devi
 		return nil, fmt.Errorf("invalid API key")
 	}
 
-	if !device.Active {
-		return nil, fmt.Errorf("device is inactive")
-	}
-
-	// update last seen (fire and forget — don't block auth on this)
+	// update last seen async
 	go func() {
 		if err := s.repo.TouchLastSeen(context.Background(), device.ID); err != nil {
 			s.logger.Error(fmt.Sprintf("failed to touch last_seen_at: %v", err))
@@ -115,6 +131,14 @@ func (s *Service) Update(ctx context.Context, id string, req *models.UpdateDevic
 
 	if err := s.repo.Update(ctx, device); err != nil {
 		return nil, fmt.Errorf("failed to update device: %w", err)
+	}
+
+	// publish active flag change to MQTT, retained
+	if req.Active != nil {
+		topic := fmt.Sprintf("birdhouse/%s/active", device.ID)
+		if err := s.publisher.Publish(topic, 1, true, map[string]bool{"active": device.Active}); err != nil {
+			s.logger.Error(fmt.Sprintf("failed to publish active flag to mqtt: %v", err))
+		}
 	}
 
 	return device, nil

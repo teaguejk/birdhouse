@@ -11,18 +11,20 @@ import (
 )
 
 type AuthConfig struct {
-	DeviceService interfaces.DeviceService
-	AdminService  interfaces.AdminService
-	OAuthVerifier oauth.TokenVerifier
-	PublicRoutes  []string
-	AuthRoutes    []string
-	AdminRoutes   []string
+	DeviceService       interfaces.DeviceService
+	AdminService        interfaces.AdminService
+	OAuthVerifier       oauth.TokenVerifier
+	PublicRoutes        []string
+	AuthRoutes          []string
+	AdminRoutes         []string
+	DeviceLenientRoutes []string
 }
 
 func AuthMiddleware(cfg *AuthConfig) func(http.Handler) http.Handler {
 	publicExact, publicPrefix := parseRoutes(cfg.PublicRoutes)
 	authExact, authPrefix := parseRoutes(cfg.AuthRoutes)
 	adminExact, adminPrefix := parseRoutes(cfg.AdminRoutes)
+	lenientExact, lenientPrefix := parseRoutes(cfg.DeviceLenientRoutes)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +66,27 @@ func AuthMiddleware(cfg *AuthConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			// 4. everything else — device api key
+			// 4. device lenient routes — api key auth, allows inactive devices
+			if matchesRoute(routeKey, lenientExact, lenientPrefix) {
+				apiKey := r.Header.Get("x-api-key")
+				if apiKey == "" {
+					responses.ChallengeApiKey(w)
+					return
+				}
+
+				device, err := cfg.DeviceService.AuthenticateAllowInactive(r.Context(), apiKey)
+				if err != nil {
+					responses.ApiKeyError(w)
+					return
+				}
+
+				ctx := context.WithValue(r.Context(), constants.DeviceIDKey, device.ID)
+				ctx = context.WithValue(ctx, constants.DeviceActiveKey, device.Active)
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+
+			// 5. everything else — device api key (rejects inactive)
 			apiKey := r.Header.Get("x-api-key")
 			if apiKey == "" {
 				responses.ChallengeApiKey(w)

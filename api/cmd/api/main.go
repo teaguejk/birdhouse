@@ -10,10 +10,13 @@ import (
 	"time"
 
 	"api/internal/api"
+	"api/internal/command"
+	"api/internal/device"
 	"api/internal/server"
 	"api/pkg/ai"
 	"api/pkg/database"
 	"api/pkg/logging"
+	"api/pkg/mqtt"
 	"api/pkg/oauth"
 	"api/pkg/storage"
 )
@@ -57,6 +60,8 @@ func main() {
 		log.Fatalf("failed to initialize oauth verifier: %v", err)
 	}
 
+	publisher, mqttClient := mqtt.NewFromConfig(cfg.MQTT, logger.WithField("component", "mqtt"))
+
 	sEnv := &api.ServerEnv{
 		Logger:        logger,
 		Config:        cfg.Server,
@@ -64,8 +69,20 @@ func main() {
 	}
 
 	repos := api.InitRepositories(db)
-	services := api.InitServices(repos, logger, storage, aiClient)
+	services := api.InitServices(repos, logger, storage, aiClient, publisher)
 	handlers := api.InitHandlers(services, logger, db)
+
+	if mqttClient != nil {
+		ackSub := command.NewAckSubscriber(logger.WithField("subscriber", "ack"), repos.Command)
+		if err := ackSub.Subscribe(mqttClient); err != nil {
+			log.Fatalf("failed to subscribe to ack topic: %v", err)
+		}
+
+		statusSub := device.NewStatusSubscriber(logger.WithField("subscriber", "status"), repos.Device)
+		if err := statusSub.Subscribe(mqttClient); err != nil {
+			log.Fatalf("failed to subscribe to status topic: %v", err)
+		}
+	}
 
 	srv := server.New(sEnv, services)
 	srv.RegisterHandler(handlers.Auth)
@@ -85,6 +102,10 @@ func main() {
 	<-quit
 
 	logger.Info("starting shutdown...")
+
+	if mqttClient != nil {
+		mqttClient.Disconnect()
+	}
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

@@ -38,7 +38,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /pending", h.ListPending)
 
 	// device acknowledges a command
-	mux.HandleFunc("POST /{id}/ack", h.Acknowledge)
+	mux.HandleFunc("POST /ack/{id}", h.Acknowledge)
 }
 
 func (h *Handler) Initialize(ctx context.Context) error {
@@ -80,13 +80,15 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	responses.WriteJSON(w, cmd, http.StatusCreated)
 }
 
-// ListPending is called by the device to poll for commands to execute.
+// ListPending is called by the device to poll for commands.
 func (h *Handler) ListPending(w http.ResponseWriter, r *http.Request) {
 	deviceID, ok := r.Context().Value(constants.DeviceIDKey).(string)
 	if !ok || deviceID == "" {
 		responses.WriteError(w, "device not authenticated", http.StatusUnauthorized)
 		return
 	}
+
+	active, _ := r.Context().Value(constants.DeviceActiveKey).(bool)
 
 	commands, err := h.service.ListPending(r.Context(), deviceID)
 	if err != nil {
@@ -99,7 +101,10 @@ func (h *Handler) ListPending(w http.ResponseWriter, r *http.Request) {
 		commands = []models.Command{}
 	}
 
-	responses.WriteJSON(w, commands, http.StatusOK)
+	responses.WriteJSON(w, models.PendingCommandsResponse{
+		Commands: commands,
+		Active:   active,
+	}, http.StatusOK)
 }
 
 // Acknowledge is called by the device after executing a command.

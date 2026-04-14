@@ -11,6 +11,7 @@ import (
 	"api/pkg/ai"
 	"api/pkg/database"
 	"api/pkg/logging"
+	"api/pkg/mqtt"
 	"api/pkg/storage"
 )
 
@@ -45,12 +46,12 @@ func InitRepositories(db *database.PostgresDB) *Repositories {
 	}
 }
 
-func InitServices(repos *Repositories, logger *logging.Logger, storage storage.Provider, aiClient ai.Client) *Services {
+func InitServices(repos *Repositories, logger *logging.Logger, storage storage.Provider, aiClient ai.Client, publisher mqtt.Publisher) *Services {
 	s := &Services{}
 
 	s.Admin = admin.NewService(logger.WithField("service", "admin"), repos.Admin)
-	s.Command = command.NewService(logger.WithField("service", "command"), repos.Command)
-	s.Device = device.NewService(logger.WithField("service", "device"), repos.Device)
+	s.Command = command.NewService(logger.WithField("service", "command"), repos.Command, publisher)
+	s.Device = device.NewService(logger.WithField("service", "device"), repos.Device, publisher)
 	s.Upload = upload.NewService(logger.WithField("service", "upload"), repos.Upload, storage)
 
 	return s

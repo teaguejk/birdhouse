@@ -26,6 +26,9 @@
       "DELETE /devices/*",
       "POST /commands/device/*"
     ],
+    "device_lenient_routes": [
+      "GET /commands/pending"
+    ]
   },
   "oauth": {
     "type": "google",
@@ -52,6 +55,11 @@
       "pool_max_conn_idle": "1m",
       "pool_health_check": "1m"
     }
+  },
+  "mqtt": {
+    "broker_url": "tcp://localhost:1883",
+    "client_id": "birdhouse-api",
+    "username": ""
   },
   "ai": {
     "type": "anthropic",

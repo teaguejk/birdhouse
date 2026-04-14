@@ -21,6 +21,7 @@ type DeviceService interface {
 	Create(ctx context.Context, req *models.CreateDeviceRequest) (*models.CreateDeviceResponse, error)
 	GetByID(ctx context.Context, id string) (*models.Device, error)
 	Authenticate(ctx context.Context, apiKey string) (*models.Device, error)
+	AuthenticateAllowInactive(ctx context.Context, apiKey string) (*models.Device, error)
 	List(ctx context.Context) ([]models.Device, error)
 	ListStatus(ctx context.Context) ([]models.DeviceStatus, error)
 	Update(ctx context.Context, id string, req *models.UpdateDeviceRequest) (*models.Device, error)

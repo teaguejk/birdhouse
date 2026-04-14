@@ -4,6 +4,7 @@ import (
 	"api/pkg/ai"
 	"api/pkg/config"
 	"api/pkg/database"
+	"api/pkg/mqtt"
 	"api/pkg/oauth"
 	"api/pkg/storage"
 	"encoding/json"
@@ -18,6 +19,7 @@ type Config struct {
 	Database *database.Config `json:"database"`
 	AI       *ai.Config       `json:"ai"`
 	OAuth    *oauth.Config    `json:"oauth"`
+	MQTT     *mqtt.Config     `json:"mqtt,omitempty"`
 }
 
 type ServerConfig struct {
@@ -27,9 +29,10 @@ type ServerConfig struct {
 	IdleTimeout      config.Duration `json:"idle_timeout"`
 	RateLimitEnabled bool            `json:"rate_limit_enabled"`
 	CORS             *CORSConfig     `json:"cors"`
-	PublicRoutes     []string        `json:"public_routes"`
-	AuthRoutes       []string        `json:"auth_routes"`
-	AdminRoutes      []string        `json:"admin_routes"`
+	PublicRoutes         []string        `json:"public_routes"`
+	AuthRoutes           []string        `json:"auth_routes"`
+	AdminRoutes          []string        `json:"admin_routes"`
+	DeviceLenientRoutes  []string        `json:"device_lenient_routes"`
 }
 
 type CORSConfig struct {
@@ -112,6 +115,11 @@ func applyEnvOverrides(cfg *Config) {
 	if cfg.AI != nil {
 		if v := os.Getenv("ANTHROPIC_API_KEY"); v != "" {
 			cfg.AI.APIKey = v
+		}
+	}
+	if cfg.MQTT != nil {
+		if v := os.Getenv("MQTT_PASSWORD"); v != "" {
+			cfg.MQTT.Password = v
 		}
 	}
 }
