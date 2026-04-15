@@ -11,7 +11,11 @@ export default function Home() {
         selectedDeviceId={selectedDeviceId}
         onSelectDevice={setSelectedDeviceId}
       />
-      {selectedDeviceId && <DeviceImages deviceId={selectedDeviceId} />}
+      {selectedDeviceId && (
+        <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <DeviceImages deviceId={selectedDeviceId} />
+        </div>
+      )}
     </main>
   );
 }

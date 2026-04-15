@@ -35,10 +35,13 @@ interface DeviceImagesProps {
 export function DeviceImages({ deviceId }: DeviceImagesProps) {
   const [uploads, setUploads] = useState<PaginatedUploads | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     setPage(1);
+    setUploads(null);
+    setInitialLoad(true);
   }, [deviceId]);
 
   useEffect(() => {
@@ -47,12 +50,15 @@ export function DeviceImages({ deviceId }: DeviceImagesProps) {
       .then((res) => res.json())
       .then((data) => setUploads(data))
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setInitialLoad(false);
+      });
   }, [deviceId, page]);
 
-  if (loading) {
+  if (initialLoad) {
     return (
-      <Card className="w-full">
+      <Card className="w-full animate-in fade-in duration-200">
         <CardHeader>
           <CardTitle className="text-lg">Images</CardTitle>
         </CardHeader>
@@ -71,7 +77,7 @@ export function DeviceImages({ deviceId }: DeviceImagesProps) {
   const pagination = uploads?.pagination;
 
   return (
-    <Card className="w-full">
+    <Card className="w-full animate-in fade-in duration-200">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Images</CardTitle>
