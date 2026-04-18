@@ -1,13 +1,39 @@
 # birdhouse
-Code for my birdhouse camera project, originally written as my capstone project at Appalachian State University.
 
-## Capstone Version (branch V1)
+My birdhouse camera project, originally written as my capstone project at Appalachian State University.
 
-### Files Included
-- birdhouse.py - script that checks for motion on a raspberry pi, captures an image, sends it by email, and uploads it to a webserver
-- image_bot.py - discord bot that will send the most recent image in a directory when prompted with a command
-- upload.py - script to upload a file to a directory on a server
-- ip_email.py - script to email a devices ip address, for my raspberry pi
+## Running Locally
 
-### Web Interface
-- The repository for the website: [https://github.com/teaguejk/birdhouse.site](https://github.com/teaguejk/birdhouse.site)
+### DB
+
+```sh
+psql
+
+\c birdhouse
+```
+
+### API
+
+```sh
+cd ./api
+export CONFIG_PATH=..;
+export ANTHROPIC_API_KEY=..;
+export DB_PASSWORD=..;
+export GOOGLE_CLIENT_ID=..;
+echo '====================\nfmt' && gofmt -l -d -s -w .&& echo '====================\nrun' && go run ./...
+```
+
+### Web
+
+```sh
+cd ./web
+cp .env.example .env  # set VITE_API_BASE_URL and VITE_GOOGLE_CLIENT_ID
+npm install
+npm run dev
+```
+
+### MQTT Broker
+
+```sh
+docker compose up -d
+```
