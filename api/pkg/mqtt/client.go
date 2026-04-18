@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	pahomqtt "github.com/eclipse/paho.mqtt.golang"
 	"api/pkg/logging"
+	pahomqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type Client struct {

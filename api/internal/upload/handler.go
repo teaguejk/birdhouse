@@ -211,7 +211,7 @@ func (h *Handler) GenerateUploadURL(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = h.service.Create(r.Context(), &models.File{
-			DeviceID:       deviceID,
+			DeviceID:     deviceID,
 			Filename:     uploadKey,
 			OriginalName: filename,
 			MimeType:     mimeType,

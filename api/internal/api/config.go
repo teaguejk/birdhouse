@@ -23,16 +23,16 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port             string          `json:"port"`
-	ReadTimeout      config.Duration `json:"read_timeout"`
-	WriteTimeout     config.Duration `json:"write_timeout"`
-	IdleTimeout      config.Duration `json:"idle_timeout"`
-	RateLimitEnabled bool            `json:"rate_limit_enabled"`
-	CORS             *CORSConfig     `json:"cors"`
-	PublicRoutes         []string        `json:"public_routes"`
-	AuthRoutes           []string        `json:"auth_routes"`
-	AdminRoutes          []string        `json:"admin_routes"`
-	DeviceLenientRoutes  []string        `json:"device_lenient_routes"`
+	Port                string          `json:"port"`
+	ReadTimeout         config.Duration `json:"read_timeout"`
+	WriteTimeout        config.Duration `json:"write_timeout"`
+	IdleTimeout         config.Duration `json:"idle_timeout"`
+	RateLimitEnabled    bool            `json:"rate_limit_enabled"`
+	CORS                *CORSConfig     `json:"cors"`
+	PublicRoutes        []string        `json:"public_routes"`
+	AuthRoutes          []string        `json:"auth_routes"`
+	AdminRoutes         []string        `json:"admin_routes"`
+	DeviceLenientRoutes []string        `json:"device_lenient_routes"`
 }
 
 type CORSConfig struct {

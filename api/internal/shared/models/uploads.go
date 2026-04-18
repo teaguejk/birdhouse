@@ -4,7 +4,7 @@ import "time"
 
 type File struct {
 	ID           string     `json:"id" db:"id"`
-	DeviceID       string     `json:"device_id" db:"device_id"`
+	DeviceID     string     `json:"device_id" db:"device_id"`
 	ResourceType *string    `json:"resource_type" db:"resource_type"` // nullable
 	ResourceID   *string    `json:"resource_id" db:"resource_id"`     // nullable
 	Status       string     `json:"status" db:"status"`               // "pending", "assigned", "orphaned"

@@ -57,7 +57,7 @@ func (h *Handler) Status(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.WriteJSON(w, map[string]string{
-		"server": "ok",
+		"server":   "ok",
 		"database": "ok",
 	}, http.StatusOK)
 }

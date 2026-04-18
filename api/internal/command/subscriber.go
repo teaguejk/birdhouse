@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	pahomqtt "github.com/eclipse/paho.mqtt.golang"
 	"api/internal/api/interfaces"
 	"api/pkg/logging"
 	"api/pkg/mqtt"
+	pahomqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type AckSubscriber struct {
